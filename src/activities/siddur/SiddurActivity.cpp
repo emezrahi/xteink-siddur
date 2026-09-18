@@ -1,10 +1,9 @@
 #include "SiddurActivity.h"
 
 #include <HalDisplay.h>
+#include <SiddurEngine/Composer.h>
 
 #include <string>
-
-#include <SiddurEngine/Composer.h>
 
 #include "components/UITheme.h"
 #include "content/EdotHamizrach.h"
