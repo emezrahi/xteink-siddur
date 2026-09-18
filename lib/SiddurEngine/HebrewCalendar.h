@@ -30,7 +30,12 @@ class HebrewCalendar final {
     return {year, static_cast<HebrewMonth>(month), day};
   }
 
-  [[nodiscard]] static constexpr bool isRoshHodesh(const HebrewDate& date) { return date.day == 1 || date.day == 30; }
+  [[nodiscard]] static constexpr bool isRoshHodesh(const HebrewDate& date) {
+    if (date.month == HebrewMonth::Tishrei && date.day == 1) {
+      return false;
+    }
+    return date.day == 1 || date.day == 30;
+  }
 
   [[nodiscard]] static int daysInYear(const int year) {
     return static_cast<int>(hebrewNewYearRataDie(year + 1) - hebrewNewYearRataDie(year));
