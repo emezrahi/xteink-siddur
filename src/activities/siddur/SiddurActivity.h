@@ -4,6 +4,7 @@
 #include <PrayerContext.h>
 
 #include <cstddef>
+#include <string>
 #include <vector>
 
 #include "activities/Activity.h"
@@ -16,7 +17,10 @@ class SiddurActivity final : public Activity {
   std::vector<SiddurEngine::PrayerBlockId> composedPrayer;
   std::size_t prayerIndex = 0;
   bool cleanRefreshPending = true;
+  std::string localDateTimePreview;
+  std::string hebrewDatePreview;
 
+  void refreshCalendarPreview();
   void openShaharit();
   void showPreviousPrayer();
   void showNextPrayer();
