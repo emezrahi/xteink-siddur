@@ -1,7 +1,7 @@
 #include "SiddurActivity.h"
 
-#include <HalDisplay.h>
 #include <Composer.h>
+#include <HalDisplay.h>
 
 #include <string>
 
