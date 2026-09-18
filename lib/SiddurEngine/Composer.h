@@ -14,10 +14,15 @@ class Composer final {
       return {};
     }
 
-    std::vector<PrayerBlockId> blocks = {
+    return {
         PrayerBlockId::NetilatYadayim,
         PrayerBlockId::AsherYatzar,
         PrayerBlockId::ElohaiNeshama,
+    };
+  }
+
+  [[nodiscard]] static std::vector<PrayerBlockId> composeWeekdayAmidah(const PrayerContext& context) {
+    std::vector<PrayerBlockId> blocks = {
         PrayerBlockId::RetzehOpening,
     };
 
