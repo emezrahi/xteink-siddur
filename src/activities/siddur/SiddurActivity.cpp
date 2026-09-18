@@ -27,8 +27,7 @@ void SiddurActivity::onEnter() {
 
   const auto& fonts = renderer.getFontMap();
   const auto it = fonts.find(prayerFontId);
-  pointedHebrewAvailable =
-      it != fonts.end() && it->second.hasCodepoint(0x05D0) && it->second.hasCodepoint(0x05B0);
+  pointedHebrewAvailable = it != fonts.end() && it->second.hasCodepoint(0x05D0) && it->second.hasCodepoint(0x05B0);
 
   if (!pointedHebrewAvailable) {
     prayerFontId = UI_12_FONT_ID;
@@ -49,8 +48,7 @@ void SiddurActivity::render(RenderLock&&) {
   renderer.drawCenteredText(UI_12_FONT_ID, kTitleY, "SIDDUR", true, EpdFontFamily::BOLD);
 
   const auto drawRtlLine = [this](int fontId, int y, const char* text) {
-    const int width =
-        renderer.getTextWidth(fontId, text, EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
+    const int width = renderer.getTextWidth(fontId, text, EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
     const int x = renderer.getScreenWidth() - kSideMargin - width;
     renderer.drawText(fontId, x, y, text, true, EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
   };
