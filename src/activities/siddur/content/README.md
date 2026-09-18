@@ -5,7 +5,7 @@ The initial liturgical text source for the X3 Siddur project is Sefaria's **Sidd
 - Source: Sefaria
 - Edition: Shaliehsaboo Edition
 - License: CC0
-- Initial implemented block: Preparatory Prayers → Morning Blessings → `על נטילת ידים`
+- Initial implemented Shaharit blocks: `על נטילת ידים`, `אשר יצר`, `אלהי נשמה`
 
 The content layer is intentionally kept separate from UI/activity code so later phases can replace static compiled blocks with the date-aware composer without rewriting the reader screen.
 
