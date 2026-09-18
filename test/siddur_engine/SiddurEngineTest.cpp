@@ -1,4 +1,4 @@
-#include <SiddurEngine/Composer.h>
+#include <Composer.h>
 #include <gtest/gtest.h>
 
 TEST(SiddurComposer, WeekdayShaharitComposesHardwareTestedMorningBlessingsInOrder) {
