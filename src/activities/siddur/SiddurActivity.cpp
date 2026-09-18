@@ -2,37 +2,23 @@
 
 #include <HalDisplay.h>
 
-#include "CrossPointSettings.h"
-#include "SdCardFontSystem.h"
+#include <algorithm>
+
 #include "components/UITheme.h"
+#include "content/EdotHamizrach.h"
 #include "fontIds.h"
 
 namespace {
-// Phase 1 constants. Prayer layout will move into the Siddur renderer once
-// pagination and modular prayer blocks are introduced.
 constexpr int kSideMargin = 24;
 constexpr int kTitleY = 46;
-constexpr int kPrayerStartY = 160;
-constexpr int kPrayerLineGap = 18;
+constexpr int kSectionTitleY = 118;
+constexpr int kPrayerStartY = 190;
+constexpr int kLineGap = 10;
+constexpr int kMaxPrayerLines = 8;
 }  // namespace
 
 void SiddurActivity::onEnter() {
   Activity::onEnter();
-
-  // The selected SD-card reader font is the path to full Hebrew coverage,
-  // including niqqud. Built-in UI fonts intentionally contain only the basic
-  // Hebrew alphabet.
-  sdFontSystem.ensureLoaded(renderer);
-  prayerFontId = SETTINGS.getReaderFontId();
-
-  const auto& fonts = renderer.getFontMap();
-  const auto it = fonts.find(prayerFontId);
-  pointedHebrewAvailable = it != fonts.end() && it->second.hasCodepoint(0x05D0) && it->second.hasCodepoint(0x05B0);
-
-  if (!pointedHebrewAvailable) {
-    prayerFontId = UI_12_FONT_ID;
-  }
-
   requestUpdate();
 }
 
@@ -53,19 +39,17 @@ void SiddurActivity::render(RenderLock&&) {
     renderer.drawText(fontId, x, y, text, true, EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
   };
 
-  if (pointedHebrewAvailable) {
-    drawRtlLine(prayerFontId, kPrayerStartY, "שְׁמַע יִשְׂרָאֵל");
-    drawRtlLine(prayerFontId, kPrayerStartY + renderer.getLineHeight(prayerFontId) + kPrayerLineGap,
-                "ה׳ אֱלֹהֵינוּ ה׳ אֶחָד");
-  } else {
-    // Basic Hebrew still lets us verify the activity + BiDi path immediately.
-    // Pointed text will be enabled as soon as a Hebrew-capable SD reader font
-    // such as DavidLibre or FrankRuhlLibre is selected.
-    drawRtlLine(UI_12_FONT_ID, kPrayerStartY, "שמע ישראל");
+  drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kSectionTitleY, SiddurContent::EdotHamizrach::kMorningBlessingsTitle);
 
-    renderer.drawCenteredText(UI_10_FONT_ID, 270, "Pointed Hebrew font not selected.");
-    renderer.drawCenteredText(UI_10_FONT_ID, 305, "Select DavidLibre or FrankRuhlLibre");
-    renderer.drawCenteredText(UI_10_FONT_ID, 340, "in Settings > Reader > Font Family.");
+  const int maxWidth = renderer.getScreenWidth() - 2 * kSideMargin;
+  const auto lines = renderer.wrappedText(SIDDUR_HEBREW_16_FONT_ID, SiddurContent::EdotHamizrach::kNetilatYadayim,
+                                          maxWidth, kMaxPrayerLines);
+  const int lineHeight = renderer.getLineHeight(SIDDUR_HEBREW_16_FONT_ID);
+
+  int y = kPrayerStartY;
+  for (const auto& line : lines) {
+    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, y, line.c_str());
+    y += lineHeight + kLineGap;
   }
 
   const auto labels = mappedInput.mapLabels("Back", "", "", "");
