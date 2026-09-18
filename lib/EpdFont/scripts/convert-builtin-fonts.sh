@@ -85,6 +85,12 @@ python fontconvert.py notosans_8_regular 8 \
   ../builtinFonts/source/NotoSansArabic/NotoSansArabic-Regular.ttf \
   --additional-intervals 0x05D0,0x05EA "${ARABIC_INTERVALS[@]}" > ../builtinFonts/notosans_8_regular.h
 
+# Siddur reading font: full pointed Hebrew block, including niqqud and Hebrew punctuation.
+python fontconvert.py siddur_hebrew_16_regular 16 \
+  ../builtinFonts/source/NotoSansHebrew/NotoSansHebrew-Regular.ttf \
+  --additional-intervals 0x0591,0x05F4 \
+  --2bit --compress --zopfli > ../builtinFonts/siddur_hebrew_16_regular.h
+
 echo ""
 echo "Running compression verification..."
 python verify_compression.py ../builtinFonts/

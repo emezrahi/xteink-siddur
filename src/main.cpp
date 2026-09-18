@@ -124,6 +124,9 @@ EpdFont ui12RegularFont(&ubuntu_12_regular);
 EpdFont ui12BoldFont(&ubuntu_12_bold);
 EpdFontFamily ui12FontFamily(&ui12RegularFont, &ui12BoldFont);
 
+EpdFont siddurHebrew16RegularFont(&siddur_hebrew_16_regular);
+EpdFontFamily siddurHebrew16FontFamily(&siddurHebrew16RegularFont);
+
 // Definitions for SilentRestart.h. RTC_NOINIT survives ESP.restart() but not power loss.
 RTC_NOINIT_ATTR uint32_t silentRebootMagic;
 RTC_NOINIT_ATTR uint32_t silentRebootTarget;
@@ -334,6 +337,7 @@ void setupDisplayAndFonts(bool seamless = false) {
   renderer.insertFont(UI_10_FONT_ID, ui10FontFamily);
   renderer.insertFont(UI_12_FONT_ID, ui12FontFamily);
   renderer.insertFont(SMALL_FONT_ID, smallFontFamily);
+  renderer.insertFont(SIDDUR_HEBREW_16_FONT_ID, siddurHebrew16FontFamily);
 
   // Discover and load SD card fonts
   sdFontSystem.begin(renderer);
