@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SiddurEngine/PrayerBlockId.h>
+#include <PrayerBlockId.h>
 
 #include <algorithm>
 #include <iterator>
