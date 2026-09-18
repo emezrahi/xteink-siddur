@@ -24,6 +24,7 @@ jobs:
             16 \
             lib/EpdFont/builtinFonts/source/NotoSansHebrew/NotoSansHebrew-Regular.ttf \
             --additional-intervals 0x0591,0x05F4 \
+            --2bit \
             --compress \
             --zopfli \
             > siddur_hebrew_16_regular.h
