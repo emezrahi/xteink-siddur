@@ -82,8 +82,9 @@ void SiddurActivity::render(RenderLock&&) {
   if (view == View::Menu) {
     renderer.drawCenteredText(UI_12_FONT_ID, kTitleY, "SIDDUR", true, EpdFontFamily::BOLD);
 
-    GUI.drawButtonMenu(renderer, Rect{0, 130, renderer.getScreenWidth(), 220}, 1, 0,
-                       [](int) { return std::string("Shaharit"); }, [](int) { return UIIcon::Book; });
+    GUI.drawButtonMenu(
+        renderer, Rect{0, 130, renderer.getScreenWidth(), 220}, 1, 0, [](int) { return std::string("Shaharit"); },
+        [](int) { return UIIcon::Book; });
 
     const auto labels = mappedInput.mapLabels("Back", "Select", "", "");
     GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
