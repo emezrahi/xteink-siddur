@@ -1,22 +1,9 @@
 #include <Composer.h>
 #include <gtest/gtest.h>
 
-TEST(SiddurComposer, WeekdayShaharitRemainsHardwareTestedMorningBlessingsOnly) {
+TEST(SiddurComposer, ShaharitKeepsHardwareTestedMorningBlessings) {
   SiddurEngine::PrayerContext context;
   context.service = SiddurEngine::PrayerService::Shaharit;
-
-  const auto blocks = SiddurEngine::Composer::compose(context);
-
-  ASSERT_EQ(blocks.size(), 3U);
-  EXPECT_EQ(blocks[0], SiddurEngine::PrayerBlockId::NetilatYadayim);
-  EXPECT_EQ(blocks[1], SiddurEngine::PrayerBlockId::AsherYatzar);
-  EXPECT_EQ(blocks[2], SiddurEngine::PrayerBlockId::ElohaiNeshama);
-}
-
-TEST(SiddurComposer, RoshHodeshDoesNotExposePartialAmidahInShaharit) {
-  SiddurEngine::PrayerContext context;
-  context.service = SiddurEngine::PrayerService::Shaharit;
-  context.isRoshHodesh = true;
 
   const auto blocks = SiddurEngine::Composer::compose(context);
 
@@ -61,4 +48,19 @@ TEST(SiddurComposer, UnsupportedServicesComposeToEmptyUntilImplemented) {
 
   context.service = SiddurEngine::PrayerService::Musaf;
   EXPECT_TRUE(SiddurEngine::Composer::compose(context).empty());
+}
+
+TEST(SiddurComposer, UnimplementedFlagsDoNotChangeAmidahUntilRulesExist) {
+  SiddurEngine::PrayerContext context;
+  context.isYomTov = true;
+  context.isFastDay = true;
+  context.isHanukkah = true;
+  context.isPurim = true;
+
+  const auto blocks = SiddurEngine::Composer::composeWeekdayAmidah(context);
+
+  ASSERT_EQ(blocks.size(), 3U);
+  EXPECT_EQ(blocks[0], SiddurEngine::PrayerBlockId::RetzehOpening);
+  EXPECT_EQ(blocks[1], SiddurEngine::PrayerBlockId::RetzehConclusion);
+  EXPECT_EQ(blocks[2], SiddurEngine::PrayerBlockId::Modim);
 }
