@@ -20,6 +20,20 @@ class Composer final {
         PrayerBlockId::ElohaiNeshama,
     };
   }
+
+  [[nodiscard]] static std::vector<PrayerBlockId> composeWeekdayAmidah(const PrayerContext& context) {
+    std::vector<PrayerBlockId> blocks = {
+        PrayerBlockId::RetzehOpening,
+    };
+
+    if (context.isRoshHodesh) {
+      blocks.push_back(PrayerBlockId::YaalehVeyavoRoshHodesh);
+    }
+
+    blocks.push_back(PrayerBlockId::RetzehConclusion);
+    blocks.push_back(PrayerBlockId::Modim);
+    return blocks;
+  }
 };
 
 }  // namespace SiddurEngine
