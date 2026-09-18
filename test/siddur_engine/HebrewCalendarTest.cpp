@@ -46,8 +46,9 @@ TEST(HebrewCalendar, HandlesVariableCheshvanAndKislevLengths) {
   expectHebrewDate({2024, 12, 2}, 5785, SiddurEngine::HebrewMonth::Kislev, 1);
 }
 
-TEST(HebrewCalendar, DetectsBothFormsOfRoshHodesh) {
+TEST(HebrewCalendar, DetectsLiturgicalRoshHodeshDates) {
   EXPECT_TRUE(SiddurEngine::HebrewCalendar::isRoshHodesh({5785, SiddurEngine::HebrewMonth::Cheshvan, 30}));
   EXPECT_TRUE(SiddurEngine::HebrewCalendar::isRoshHodesh({5785, SiddurEngine::HebrewMonth::Kislev, 1}));
   EXPECT_FALSE(SiddurEngine::HebrewCalendar::isRoshHodesh({5785, SiddurEngine::HebrewMonth::Kislev, 15}));
+  EXPECT_FALSE(SiddurEngine::HebrewCalendar::isRoshHodesh({5787, SiddurEngine::HebrewMonth::Tishrei, 1}));
 }
