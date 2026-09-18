@@ -14,15 +14,12 @@ class SiddurActivity final : public Activity {
   View view = View::Menu;
   SiddurEngine::PrayerContext prayerContext;
   std::vector<SiddurEngine::PrayerBlockId> composedPrayer;
-  std::size_t menuSelection = 0;
   std::size_t prayerIndex = 0;
-  std::size_t blockPageIndex = 0;
   bool cleanRefreshPending = true;
 
-  void openShaharit(bool isRoshHodesh);
+  void openShaharit();
   void showPreviousPrayer();
   void showNextPrayer();
-  std::size_t getBlockPageCount(std::size_t blockIndex);
 
  public:
   explicit SiddurActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
