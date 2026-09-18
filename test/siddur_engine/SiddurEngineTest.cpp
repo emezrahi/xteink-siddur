@@ -1,6 +1,5 @@
-#include <gtest/gtest.h>
-
 #include <SiddurEngine/Composer.h>
+#include <gtest/gtest.h>
 
 TEST(SiddurComposer, WeekdayShaharitComposesHardwareTestedMorningBlessingsInOrder) {
   SiddurEngine::PrayerContext context;
