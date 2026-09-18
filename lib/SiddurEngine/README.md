@@ -7,10 +7,9 @@ The UI does not decide which prayers belong in a service. It supplies a `PrayerC
 Current Phase 5 behavior:
 
 - The visible Shaharit flow remains the three hardware-tested morning blessing blocks.
-- Weekday Amidah composition has its first real insertion point:
-  `RetzehOpening -> [YaalehVeyavoRoshHodesh] -> RetzehConclusion -> Modim`.
-- `YaalehVeyavoRoshHodesh` is inserted only when `PrayerContext::isRoshHodesh` is true.
-- The partial Amidah sequence is not exposed in the Siddur UI yet, because the preceding Amidah blessings have not been added.
-- Minha, Arvit, and Musaf remain unimplemented.
+- A separate `composeWeekdayAmidah()` path models the first Amidah insertion boundary.
+- Normal context composes `RetzehOpening -> RetzehConclusion -> Modim`.
+- When `PrayerContext::isRoshHodesh` is true, `YaalehVeyavoRoshHodesh` is inserted between the two Retzeh blocks.
+- Minha, Arvit, and Musaf are not yet exposed as complete services.
 
-The next step is to expand the real weekday Amidah corpus around this tested rule before wiring automatic calendar detection.
+The incomplete Amidah segment is intentionally not appended to the visible Shaharit reader. It exists to prove the rules architecture without presenting a structurally incomplete service as usable prayer.
