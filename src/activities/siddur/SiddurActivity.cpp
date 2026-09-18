@@ -57,8 +57,7 @@ std::size_t SiddurActivity::getBlockPageCount(const std::size_t blockIndex) {
   if (block == nullptr) return 1;
 
   const int maxWidth = renderer.getScreenWidth() - 2 * kSideMargin;
-  const auto lines =
-      renderer.wrappedText(SIDDUR_HEBREW_16_FONT_ID, block->text, maxWidth, kMaxWrappedPrayerLines);
+  const auto lines = renderer.wrappedText(SIDDUR_HEBREW_16_FONT_ID, block->text, maxWidth, kMaxWrappedPrayerLines);
   return std::max<std::size_t>(1, (lines.size() + kLinesPerPage - 1) / kLinesPerPage);
 }
 
@@ -104,8 +103,7 @@ void SiddurActivity::loop() {
       return;
     }
 
-    if (mappedInput.wasReleased(MappedInputManager::Button::NavNext) &&
-        menuSelection + 1 < kContextMenuItemCount) {
+    if (mappedInput.wasReleased(MappedInputManager::Button::NavNext) && menuSelection + 1 < kContextMenuItemCount) {
       ++menuSelection;
       requestUpdate();
       return;
@@ -142,7 +140,9 @@ void SiddurActivity::render(RenderLock&&) {
 
     GUI.drawButtonMenu(
         renderer, Rect{0, 130, renderer.getScreenWidth(), 260}, kContextMenuItemCount, menuSelection,
-        [](int index) { return index == 0 ? std::string("Shaharit - Weekday") : std::string("Shaharit - Rosh Hodesh"); },
+        [](int index) {
+          return index == 0 ? std::string("Shaharit - Weekday") : std::string("Shaharit - Rosh Hodesh");
+        },
         [](int) { return UIIcon::Book; });
 
     const auto labels = mappedInput.mapLabels("Back", "Select", "Previous", "Next");
