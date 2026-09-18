@@ -1,5 +1,6 @@
 #include "SiddurActivity.h"
 
+#include <Composer.h>
 #include <HalDisplay.h>
 
 #include <string>
@@ -28,6 +29,14 @@ void SiddurActivity::onEnter() {
 }
 
 void SiddurActivity::openShaharit() {
+  prayerContext = {};
+  prayerContext.service = SiddurEngine::PrayerService::Shaharit;
+  composedPrayer = SiddurEngine::Composer::compose(prayerContext);
+
+  if (composedPrayer.empty()) {
+    return;
+  }
+
   view = View::Shaharit;
   prayerIndex = 0;
   cleanRefreshPending = true;
@@ -41,7 +50,7 @@ void SiddurActivity::showPreviousPrayer() {
 }
 
 void SiddurActivity::showNextPrayer() {
-  if (prayerIndex + 1 >= SiddurContent::EdotHamizrach::kShaharitMorningBlessingsCount) return;
+  if (prayerIndex + 1 >= composedPrayer.size()) return;
   ++prayerIndex;
   requestUpdate();
 }
@@ -95,14 +104,20 @@ void SiddurActivity::render(RenderLock&&) {
       renderer.drawText(fontId, x, y, text, true, EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
     };
 
-    const auto& block = SiddurContent::EdotHamizrach::kShaharitMorningBlessings[prayerIndex];
+    const auto* block = SiddurContent::EdotHamizrach::findBlock(composedPrayer[prayerIndex]);
+    if (block == nullptr) {
+      renderer.drawCenteredText(UI_12_FONT_ID, 250, "Missing prayer block");
+      renderer.displayBuffer(cleanRefreshPending ? HalDisplay::HALF_REFRESH : HalDisplay::FAST_REFRESH);
+      cleanRefreshPending = false;
+      return;
+    }
 
     drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kTitleY, SiddurContent::EdotHamizrach::kShaharitTitle);
-    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kSectionTitleY, SiddurContent::EdotHamizrach::kMorningBlessingsTitle);
-    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kPrayerTitleY, block.title);
+    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kSectionTitleY, block->sectionTitle);
+    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kPrayerTitleY, block->title);
 
     const int maxWidth = renderer.getScreenWidth() - 2 * kSideMargin;
-    const auto lines = renderer.wrappedText(SIDDUR_HEBREW_16_FONT_ID, block.text, maxWidth, kMaxPrayerLines);
+    const auto lines = renderer.wrappedText(SIDDUR_HEBREW_16_FONT_ID, block->text, maxWidth, kMaxPrayerLines);
     const int lineHeight = renderer.getLineHeight(SIDDUR_HEBREW_16_FONT_ID);
 
     int y = kPrayerStartY;
@@ -111,8 +126,7 @@ void SiddurActivity::render(RenderLock&&) {
       y += lineHeight + kLineGap;
     }
 
-    const std::string pageLabel = std::to_string(prayerIndex + 1) + " / " +
-                                  std::to_string(SiddurContent::EdotHamizrach::kShaharitMorningBlessingsCount);
+    const std::string pageLabel = std::to_string(prayerIndex + 1) + " / " + std::to_string(composedPrayer.size());
     renderer.drawCenteredText(UI_10_FONT_ID, kPageNumberY, pageLabel.c_str());
 
     const auto labels = mappedInput.mapLabels("Back", "", "Previous", "Next");

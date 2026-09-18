@@ -1,26 +1,34 @@
 #pragma once
 
-#include <cstddef>
+#include <PrayerBlockId.h>
+
+#include <algorithm>
+#include <iterator>
 
 namespace SiddurContent::EdotHamizrach {
 
-struct PrayerBlock {
+struct PrayerTextBlock {
+  SiddurEngine::PrayerBlockId id;
+  const char* sectionTitle;
   const char* title;
   const char* text;
 };
 
 // Source: Sefaria, Siddur Edot HaMizrach, Shaliehsaboo Edition (CC0).
-// Preparatory Prayers -> Morning Blessings.
 inline constexpr char kShaharitTitle[] = "שחרית";
 inline constexpr char kMorningBlessingsTitle[] = "ברכות השחר";
 
-inline constexpr PrayerBlock kShaharitMorningBlessings[] = {
+inline constexpr PrayerTextBlock kPrayerBlocks[] = {
     {
+        SiddurEngine::PrayerBlockId::NetilatYadayim,
+        kMorningBlessingsTitle,
         "על נטילת ידים",
         "בָּרוּךְ אַתָּה יְהוָֹה, אֱלֹהֵֽינוּ מֶֽלֶךְ הָעוֹלָם, "
         "אֲשֶׁר קִדְּשָׁנוּ בְּמִצְוֹתָיו וְצִוָּנוּ עַל נְטִילַת יָדָיִם:",
     },
     {
+        SiddurEngine::PrayerBlockId::AsherYatzar,
+        kMorningBlessingsTitle,
         "אשר יצר",
         "בָּרוּךְ אַתָּה יְהוָֹה, אֱלֹהֵֽינוּ מֶֽלֶךְ הָעוֹלָם, "
         "אֲשֶׁר יָצַר אֶת הָאָדָם בְּחָכְמָה, וּבָרָא בוֹ נְקָבִים נְקָבִים, "
@@ -30,6 +38,8 @@ inline constexpr PrayerBlock kShaharitMorningBlessings[] = {
         "בָּרוּךְ אַתָּה יְהֹוָה, רוֹפֵא כָל־בָּשָׂר וּמַפְלִיא לַעֲשׂוֹת:",
     },
     {
+        SiddurEngine::PrayerBlockId::ElohaiNeshama,
+        kMorningBlessingsTitle,
         "אלהי נשמה",
         "אֱלֹהַי, נְשָׁמָה שֶׁנָּתַתָּ בִּי טְהוֹרָה, אַתָּה בְרָאתָהּ, "
         "אַתָּה יְצַרְתָּהּ, אַתָּה נְפַחְתָּהּ בִּי, וְאַתָּה מְשַׁמְּרָהּ בְּקִרְבִּי, "
@@ -41,7 +51,10 @@ inline constexpr PrayerBlock kShaharitMorningBlessings[] = {
     },
 };
 
-inline constexpr std::size_t kShaharitMorningBlessingsCount =
-    sizeof(kShaharitMorningBlessings) / sizeof(kShaharitMorningBlessings[0]);
+[[nodiscard]] inline const PrayerTextBlock* findBlock(const SiddurEngine::PrayerBlockId id) {
+  const auto it = std::find_if(std::begin(kPrayerBlocks), std::end(kPrayerBlocks),
+                               [id](const PrayerTextBlock& block) { return block.id == id; });
+  return it == std::end(kPrayerBlocks) ? nullptr : &*it;
+}
 
 }  // namespace SiddurContent::EdotHamizrach
