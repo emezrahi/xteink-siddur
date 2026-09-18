@@ -2,6 +2,9 @@
 
 #include <SiddurEngine/PrayerBlockId.h>
 
+#include <algorithm>
+#include <iterator>
+
 namespace SiddurContent::EdotHamizrach {
 
 struct PrayerTextBlock {
@@ -49,12 +52,9 @@ inline constexpr PrayerTextBlock kPrayerBlocks[] = {
 };
 
 [[nodiscard]] inline const PrayerTextBlock* findBlock(const SiddurEngine::PrayerBlockId id) {
-  for (const auto& block : kPrayerBlocks) {
-    if (block.id == id) {
-      return &block;
-    }
-  }
-  return nullptr;
+  const auto it = std::find_if(std::begin(kPrayerBlocks), std::end(kPrayerBlocks),
+                               [id](const PrayerTextBlock& block) { return block.id == id; });
+  return it == std::end(kPrayerBlocks) ? nullptr : &*it;
 }
 
 }  // namespace SiddurContent::EdotHamizrach
