@@ -6,10 +6,11 @@ The UI does not decide which prayers belong in a service. It supplies a `PrayerC
 
 Current Phase 5 behavior:
 
-- Shaharit includes the three hardware-tested morning blessing blocks.
-- The Amidah test segment contains `RetzehOpening -> RetzehConclusion -> Modim`.
-- When `PrayerContext::isRoshHodesh` is true, `YaalehVeyavoRoshHodesh` is inserted between the two Retzeh blocks.
-- The X3 UI has a temporary Weekday / Rosh Hodesh selector so both compositions can be verified before the real calendar engine is connected.
-- Minha, Arvit, and Musaf still compose to an empty list.
+- The visible Shaharit flow remains the three hardware-tested morning blessing blocks.
+- Weekday Amidah composition has its first real insertion point:
+  `RetzehOpening -> [YaalehVeyavoRoshHodesh] -> RetzehConclusion -> Modim`.
+- `YaalehVeyavoRoshHodesh` is inserted only when `PrayerContext::isRoshHodesh` is true.
+- The partial Amidah sequence is not exposed in the Siddur UI yet, because the preceding Amidah blessings have not been added.
+- Minha, Arvit, and Musaf remain unimplemented.
 
-This is intentionally a structural test. The missing portions of Shaharit will be filled in as modular blocks after the insertion/rules architecture is hardware-verified.
+The next step is to expand the real weekday Amidah corpus around this tested rule before wiring automatic calendar detection.
