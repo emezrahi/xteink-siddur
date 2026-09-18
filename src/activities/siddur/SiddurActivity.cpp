@@ -8,6 +8,8 @@
 #include "fontIds.h"
 
 namespace {
+// Phase 1 constants. Prayer layout will move into the Siddur renderer once
+// pagination and modular prayer blocks are introduced.
 constexpr int kSideMargin = 24;
 constexpr int kTitleY = 46;
 constexpr int kPrayerStartY = 160;
