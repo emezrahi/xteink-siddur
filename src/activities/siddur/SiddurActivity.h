@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cstddef>
-#include <vector>
-
 #include <SiddurEngine/PrayerBlockId.h>
 #include <SiddurEngine/PrayerContext.h>
+
+#include <cstddef>
+#include <vector>
 
 #include "activities/Activity.h"
 
