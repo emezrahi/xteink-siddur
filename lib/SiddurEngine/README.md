@@ -13,3 +13,18 @@ Current Phase 5 behavior:
 - Minha, Arvit, and Musaf are not yet exposed as complete services.
 
 The incomplete Amidah segment is intentionally not appended to the visible Shaharit reader. It exists to prove the rules architecture without presenting a structurally incomplete service as usable prayer.
+
+
+## Phase 6: offline Hebrew calendar
+
+`HebrewCalendar` converts a civil Gregorian date to a fixed Hebrew calendar date without network access.
+
+It currently provides:
+
+- Gregorian -> Hebrew date conversion
+- Hebrew leap-year detection
+- variable Cheshvan/Kislev month lengths
+- Adar / Adar I / Adar II handling
+- Rosh Hodesh detection for both day 1 and day 30
+
+The conversion intentionally treats the supplied civil date as a daytime calendar date. Sunset rollover, timezone, and location are separate concerns and will be applied when resolving a real `PrayerContext` from the X3 clock.
