@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SiddurEngine/PrayerBlockId.h>
-#include <SiddurEngine/PrayerContext.h>
+#include <PrayerBlockId.h>
+#include <PrayerContext.h>
 
 #include <cstddef>
 #include <vector>
