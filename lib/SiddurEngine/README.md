@@ -28,3 +28,16 @@ It currently provides:
 - Rosh Hodesh detection for both day 1 and day 30
 
 The conversion intentionally treats the supplied civil date as a daytime calendar date. Sunset rollover, timezone, and location are separate concerns and will be applied when resolving a real `PrayerContext` from the X3 clock.
+
+
+## Phase 7: PrayerContext resolution
+
+`PrayerContextResolver` bridges the calendar and prayer-rule layers. Given a prayer service, civil date, and whether sunset has already passed, it:
+
+1. advances the civil date by one day when necessary,
+2. converts that date to the Hebrew calendar,
+3. derives liturgical flags currently supported by the engine.
+
+The first derived flag is `isRoshHodesh`. Rosh Hashanah (1 Tishrei) is explicitly excluded from that flag.
+
+The resolver accepts `afterSunset` as an input; it does not calculate sunset itself. Location/timezone-aware sunset calculation remains a later device-integration layer.
