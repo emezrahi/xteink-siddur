@@ -1,0 +1,33 @@
+name: Generate Siddur Hebrew font
+
+on:
+  push:
+    branches: [siddur-phase-2]
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install font tools
+        run: python -m pip install freetype-py fonttools zopfli
+      - name: Generate pointed Hebrew font
+        run: |
+          python lib/EpdFont/scripts/fontconvert.py \
+            siddur_hebrew_16_regular \
+            16 \
+            lib/EpdFont/builtinFonts/source/NotoSansHebrew/NotoSansHebrew-Regular.ttf \
+            --additional-intervals 0x0591,0x05F4 \
+            --compress \
+            --zopfli \
+            > siddur_hebrew_16_regular.h
+      - uses: actions/upload-artifact@v4
+        with:
+          name: siddur-hebrew-font-header
+          path: siddur_hebrew_16_regular.h
