@@ -6,8 +6,7 @@ namespace SiddurEngine {
 
 class LocalClock final {
  public:
-  [[nodiscard]] static constexpr CivilDateTime applyUtcOffset(CivilDateTime utc,
-                                                              uint8_t utcOffsetQuarterHoursBiased) {
+  [[nodiscard]] static constexpr CivilDateTime applyUtcOffset(CivilDateTime utc, uint8_t utcOffsetQuarterHoursBiased) {
     if (utcOffsetQuarterHoursBiased > 104) {
       utcOffsetQuarterHoursBiased = 104;
     }
