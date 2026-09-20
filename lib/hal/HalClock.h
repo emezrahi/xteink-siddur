@@ -9,8 +9,13 @@ extern HalClock halClock;  // Singleton
 class HalClock {
   bool _available = false;
   mutable Rtc _sdkRtc;
+  mutable uint16_t _cachedYear = 0;
+  mutable uint8_t _cachedMonth = 0;
+  mutable uint8_t _cachedDay = 0;
   mutable uint8_t _cachedHour = 0;
   mutable uint8_t _cachedMinute = 0;
+  mutable uint8_t _cachedSecond = 0;
+  mutable uint8_t _cachedWeekday = 0;
   mutable bool _hasCachedTime = false;
   mutable unsigned long _lastPollMs = 0;
 
@@ -23,7 +28,11 @@ class HalClock {
   // True if an RTC is present on this device
   bool isAvailable() const { return _available; }
 
-  // Get current hour (0-23) and minute (0-59).
+  // Read the current UTC date/time from the RTC.
+  // Returns false if RTC is not available and no cached value exists.
+  bool getUtcDateTime(Rtc::DateTime& dateTime) const;
+
+  // Get current UTC hour (0-23) and minute (0-59).
   // Returns false if RTC is not available.
   bool getTime(uint8_t& hour, uint8_t& minute) const;
 

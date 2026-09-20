@@ -2,6 +2,7 @@ add_executable(siddur_engine_tests
   SiddurEngineTest.cpp
   HebrewCalendarTest.cpp
   PrayerContextResolverTest.cpp
+  LocalClockTest.cpp
 )
 
 target_include_directories(siddur_engine_tests PRIVATE

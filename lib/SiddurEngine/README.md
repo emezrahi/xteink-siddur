@@ -41,3 +41,10 @@ The conversion intentionally treats the supplied civil date as a daytime calenda
 The first derived flag is `isRoshHodesh`. Rosh Hashanah (1 Tishrei) is explicitly excluded from that flag.
 
 The resolver accepts `afterSunset` as an input; it does not calculate sunset itself. Location/timezone-aware sunset calculation remains a later device-integration layer.
+
+
+## Phase 8: X3 RTC bridge
+
+CrossPoint's RTC now exposes its full UTC date/time instead of only hour/minute. The Siddur applies CrossPoint's existing quarter-hour UTC offset and shows both the resulting local civil date/time and the daytime Hebrew date on the Siddur menu.
+
+This is intentionally a hardware sanity check. The displayed Hebrew date does not yet roll over automatically at sunset, and the prayer composer does not yet consume the live RTC-derived context.

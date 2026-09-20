@@ -12,30 +12,43 @@ void HalClock::begin() {
   LOG_INF("CLK", _available ? "SDK RTC found" : "RTC not found");
 }
 
-bool HalClock::getTime(uint8_t& hour, uint8_t& minute) const {
+bool HalClock::getUtcDateTime(Rtc::DateTime& dateTime) const {
   if (!_available) return false;
 
   const unsigned long now = millis();
-  if (_lastPollMs != 0 && (now - _lastPollMs) < CLOCK_POLL_MS) {
-    hour = _cachedHour;
-    minute = _cachedMinute;
-    return true;
+  if (_lastPollMs == 0 || (now - _lastPollMs) >= CLOCK_POLL_MS) {
+    Rtc::DateTime current;
+    if (_sdkRtc.now(current)) {
+      _cachedYear = current.year;
+      _cachedMonth = current.month;
+      _cachedDay = current.day;
+      _cachedHour = current.hour;
+      _cachedMinute = current.minute;
+      _cachedSecond = current.second;
+      _cachedWeekday = current.weekday;
+      _hasCachedTime = true;
+    } else if (!_hasCachedTime) {
+      return false;
+    }
+    _lastPollMs = now != 0 ? now : 1;
   }
 
-  Rtc::DateTime dt;
-  if (!_sdkRtc.now(dt)) {
-    if (!_hasCachedTime) return false;
-    _lastPollMs = now;
-    hour = _cachedHour;
-    minute = _cachedMinute;
-    return true;
-  }
-  _cachedHour = dt.hour;
-  _cachedMinute = dt.minute;
-  _lastPollMs = now;
-  _hasCachedTime = true;
-  hour = _cachedHour;
-  minute = _cachedMinute;
+  dateTime.year = _cachedYear;
+  dateTime.month = _cachedMonth;
+  dateTime.day = _cachedDay;
+  dateTime.hour = _cachedHour;
+  dateTime.minute = _cachedMinute;
+  dateTime.second = _cachedSecond;
+  dateTime.weekday = _cachedWeekday;
+  return true;
+}
+
+bool HalClock::getTime(uint8_t& hour, uint8_t& minute) const {
+  Rtc::DateTime dateTime;
+  if (!getUtcDateTime(dateTime)) return false;
+
+  hour = dateTime.hour;
+  minute = dateTime.minute;
   return true;
 }
 
@@ -95,8 +108,13 @@ bool HalClock::syncFromNTP() {
       dt.weekday = static_cast<uint8_t>(timeinfo.tm_wday);
       if (_sdkRtc.set(dt)) {
         _lastPollMs = 0;
+        _cachedYear = dt.year;
+        _cachedMonth = dt.month;
+        _cachedDay = dt.day;
         _cachedHour = dt.hour;
         _cachedMinute = dt.minute;
+        _cachedSecond = dt.second;
+        _cachedWeekday = dt.weekday;
         _hasCachedTime = true;
         LOG_INF("CLK", "RTC set to %04u-%02u-%02u %02u:%02u:%02u UTC", dt.year, dt.month, dt.day, dt.hour, dt.minute,
                 dt.second);
