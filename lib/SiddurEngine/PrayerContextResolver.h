@@ -22,12 +22,25 @@ class PrayerContextResolver final {
 
     PrayerContext context;
     context.service = service;
+    context.weekday = weekdayFromCivilDate(civilDate);
     context.isRoshHodesh = HebrewCalendar::isRoshHodesh(hebrewDate);
 
     return {context, hebrewDate};
   }
 
  private:
+  [[nodiscard]] static constexpr Weekday weekdayFromCivilDate(CivilDate date) {
+    // Gregorian weekday using Sakamoto's algorithm. 0=Sunday.
+    constexpr int monthOffsets[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+    int year = date.year;
+    if (date.month < 3) {
+      --year;
+    }
+
+    const int dayIndex = (year + year / 4 - year / 100 + year / 400 + monthOffsets[date.month - 1] + date.day) % 7;
+    return static_cast<Weekday>(dayIndex);
+  }
+
   [[nodiscard]] static constexpr bool isGregorianLeapYear(const int year) {
     return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
   }
