@@ -37,3 +37,23 @@ TEST(PrayerContextResolver, PreservesRequestedPrayerService) {
   EXPECT_EQ(resolved.context.service, SiddurEngine::PrayerService::Minha);
   EXPECT_TRUE(resolved.context.isRoshHodesh);
 }
+
+TEST(PrayerContextResolver, ResolvesGregorianWeekday) {
+  const auto sunday =
+      SiddurEngine::PrayerContextResolver::resolve(SiddurEngine::PrayerService::Shaharit, {2026, 9, 20}, false);
+  const auto monday =
+      SiddurEngine::PrayerContextResolver::resolve(SiddurEngine::PrayerService::Shaharit, {2026, 9, 21}, false);
+  const auto shabbat =
+      SiddurEngine::PrayerContextResolver::resolve(SiddurEngine::PrayerService::Shaharit, {2026, 9, 26}, false);
+
+  EXPECT_EQ(sunday.context.weekday, SiddurEngine::Weekday::Sunday);
+  EXPECT_EQ(monday.context.weekday, SiddurEngine::Weekday::Monday);
+  EXPECT_EQ(shabbat.context.weekday, SiddurEngine::Weekday::Shabbat);
+}
+
+TEST(PrayerContextResolver, AdvancesWeekdayAfterSunsetWithJewishDate) {
+  const auto resolved =
+      SiddurEngine::PrayerContextResolver::resolve(SiddurEngine::PrayerService::Arvit, {2026, 9, 20}, true);
+
+  EXPECT_EQ(resolved.context.weekday, SiddurEngine::Weekday::Monday);
+}
