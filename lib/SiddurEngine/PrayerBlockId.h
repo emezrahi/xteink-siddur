@@ -26,8 +26,16 @@ enum class PrayerBlockId {
 
   // Weekday Amidah.
   WeekdayAmidah,
+  MoridHatal,
+  MashivHaruach,
+  Barechenu,
+  BarechAleinu,
   RetzehOpening,
   YaalehVeyavoRoshHodesh,
+  YaalehVeyavoFestival,
+  AlHanissimHanukkah,
+  AlHanissimPurim,
+  Aneinu,
   RetzehConclusion,
   Modim,
 
@@ -35,6 +43,15 @@ enum class PrayerBlockId {
   ViduiRegular,
   ViduiMondayThursday,
   TorahReadingWeekday,
+  HallelHalf,
+  HallelFull,
+  MussafRoshHodesh,
+  MussafFestival,
+
+  // Minha and Arvit.
+  MinhaOpening,
+  ArvitShemaAndBlessings,
+  SefiratHaOmer,
 
   // End of Shaharit.
   AshreiAfterTahanun,

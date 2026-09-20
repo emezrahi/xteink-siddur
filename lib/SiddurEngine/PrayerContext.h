@@ -19,6 +19,10 @@ enum class Weekday {
   Shabbat,
 };
 
+enum class HallelKind { None, Half, Full };
+enum class RainMention { MoridHatal, MashivHaruach };
+enum class RainRequest { Barechenu, BarechAleinu };
+
 struct PrayerContext {
   PrayerService service = PrayerService::Shaharit;
   Weekday weekday = Weekday::Sunday;
@@ -29,6 +33,16 @@ struct PrayerContext {
   bool isFastDay = false;
   bool isHanukkah = false;
   bool isPurim = false;
+  bool sayTachanun = true;
+  bool sayYaalehVeyavo = false;
+  bool sayAlHanissim = false;
+  bool sayMussaf = false;
+  bool sayAneinu = false;
+  bool isSefiratHaOmer = false;
+  int omerDay = 0;
+  HallelKind hallel = HallelKind::None;
+  RainMention rainMention = RainMention::MoridHatal;
+  RainRequest rainRequest = RainRequest::Barechenu;
 };
 
 }  // namespace SiddurEngine

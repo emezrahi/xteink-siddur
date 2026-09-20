@@ -88,6 +88,9 @@ void CrossPointSettings::toJson(JsonDocument& doc) const {
   doc["frontButtonConfirm"] = frontButtonConfirm;
   doc["frontButtonLeft"] = frontButtonLeft;
   doc["frontButtonRight"] = frontButtonRight;
+  doc["siddurLatitudeE6"] = siddurLatitudeE6;
+  doc["siddurLongitudeE6"] = siddurLongitudeE6;
+  doc["siddurDiaspora"] = siddurDiaspora;
   // Font family and size — both use dynamic getter/setters in SettingsList (the
   // option lists depend on the SD font registry), so the generic loop skips them.
   doc["fontFamily"] = fontFamily;
@@ -193,6 +196,13 @@ bool CrossPointSettings::fromJson(JsonVariantConst doc) {
   frontButtonRight =
       clamp(doc["frontButtonRight"] | (uint8_t)FRONT_HW_RIGHT, FRONT_BUTTON_HARDWARE_COUNT, FRONT_HW_RIGHT);
   validateFrontButtonMapping(s);
+
+  const int32_t storedLatitude = doc["siddurLatitudeE6"] | siddurLatitudeE6;
+  const int32_t storedLongitude = doc["siddurLongitudeE6"] | siddurLongitudeE6;
+  siddurLatitudeE6 = storedLatitude >= -90000000 && storedLatitude <= 90000000 ? storedLatitude : 40650100;
+  siddurLongitudeE6 = storedLongitude >= -180000000 && storedLongitude <= 180000000 ? storedLongitude : -73949600;
+  siddurDiaspora =
+      clamp(doc["siddurDiaspora"] | static_cast<uint8_t>(1), static_cast<uint8_t>(2), static_cast<uint8_t>(1));
 
   // Reader font size — an actual point size since 1.5. Files written by 1.4 and
   // earlier hold the old SMALL/MEDIUM/LARGE/EXTRA_LARGE slot in 0..3; no font is
