@@ -55,3 +55,12 @@ This is intentionally a hardware sanity check. The displayed Hebrew date does no
 The Smart Siddur APK is now treated as a reference specification for prayer composition. `ServiceGeneratorPlan` records the major generator boundaries discovered in the app, including the verified ten-stage Shaharit pipeline.
 
 This layer intentionally stores only generator boundaries. Decompiled Android implementation code is not included. Each stage will be reimplemented against `PrayerContext` and the X3 content repository, keeping prayer rules independent of the UI and avoiding additional heap allocation.
+
+
+## Phase 10: complete ordinary weekday Shaharit baseline
+
+`PrayerContextResolver` now derives the weekday from the local civil date. `Composer` uses it to build a full ordinary weekday Shaharit flow, including the longer Monday/Thursday Tahanun path, weekday Torah-service frame, the correct weekday Shir Shel Yom, and the corresponding Uva LeSion path.
+
+The Siddur activity now feeds the RTC-derived local civil date into `PrayerContextResolver` and renders long prayer sections across multiple e-ink pages instead of truncating them after eleven lines.
+
+This phase is deliberately limited to the ordinary weekday baseline. Seasonal Amidah wording, no-Tahanun days, Hallel, Rosh Hodesh/Mussaf, festivals, fast-day variations, and automatic sunset rollover remain rule-engine work rather than being guessed by the UI.
