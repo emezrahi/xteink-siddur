@@ -89,7 +89,7 @@ For the X3 app:
 
 The next slices should port behavior in this order:
 
-1. Ordinary weekday Shaharit, using the verified generator pipeline above.
+1. Ordinary weekday Shaharit baseline — implemented in Phase 10 using the verified generator pipeline above.
 2. Full weekday Amidah seasonal/insertion rules.
 3. Tahanun/no-Tahanun resolution.
 4. Minha and Arvit.
