@@ -48,3 +48,10 @@ The resolver accepts `afterSunset` as an input; it does not calculate sunset its
 CrossPoint's RTC now exposes its full UTC date/time instead of only hour/minute. The Siddur applies CrossPoint's existing quarter-hour UTC offset and shows both the resulting local civil date/time and the daytime Hebrew date on the Siddur menu.
 
 This is intentionally a hardware sanity check. The displayed Hebrew date does not yet roll over automatically at sunset, and the prayer composer does not yet consume the live RTC-derived context.
+
+
+## Phase 9: Smart Siddur behavioral baseline
+
+The Smart Siddur APK is now treated as a reference specification for prayer composition. `ServiceGeneratorPlan` records the major generator boundaries discovered in the app, including the verified ten-stage Shaharit pipeline.
+
+This layer intentionally stores only generator boundaries. Decompiled Android implementation code is not included. Each stage will be reimplemented against `PrayerContext` and the X3 content repository, keeping prayer rules independent of the UI and avoiding additional heap allocation.
