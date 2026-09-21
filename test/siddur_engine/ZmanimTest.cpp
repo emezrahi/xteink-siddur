@@ -23,14 +23,11 @@ TEST(Zmanim, RejectsInvalidLocation) {
 
 TEST(ServiceSelector, ChoosesServiceFromSolarBoundaries) {
   const SiddurEngine::DailyZmanim zmanim{400, 770, 1140, true};
-  EXPECT_EQ(SiddurEngine::ServiceSelector::select({{2026, 9, 20}, 6, 0}, zmanim),
-            SiddurEngine::PrayerService::Arvit);
+  EXPECT_EQ(SiddurEngine::ServiceSelector::select({{2026, 9, 20}, 6, 0}, zmanim), SiddurEngine::PrayerService::Arvit);
   EXPECT_EQ(SiddurEngine::ServiceSelector::select({{2026, 9, 20}, 9, 0}, zmanim),
             SiddurEngine::PrayerService::Shaharit);
-  EXPECT_EQ(SiddurEngine::ServiceSelector::select({{2026, 9, 20}, 14, 0}, zmanim),
-            SiddurEngine::PrayerService::Minha);
-  EXPECT_EQ(SiddurEngine::ServiceSelector::select({{2026, 9, 20}, 20, 0}, zmanim),
-            SiddurEngine::PrayerService::Arvit);
+  EXPECT_EQ(SiddurEngine::ServiceSelector::select({{2026, 9, 20}, 14, 0}, zmanim), SiddurEngine::PrayerService::Minha);
+  EXPECT_EQ(SiddurEngine::ServiceSelector::select({{2026, 9, 20}, 20, 0}, zmanim), SiddurEngine::PrayerService::Arvit);
 }
 
 TEST(PrayerContextResolver, RollsHebrewDateAndSelectsArvitAfterSunset) {

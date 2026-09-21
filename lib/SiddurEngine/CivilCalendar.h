@@ -53,7 +53,6 @@ class CivilCalendar final {
     date.day = daysInMonth(date.year, date.month);
     return date;
   }
-
 };
 
 }  // namespace SiddurEngine

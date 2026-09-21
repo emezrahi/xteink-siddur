@@ -36,8 +36,8 @@ class Zmanim final {
     const double center = 1.9148 * sinDegrees(meanAnomaly) + 0.0200 * sinDegrees(2.0 * meanAnomaly) +
                           0.0003 * sinDegrees(3.0 * meanAnomaly);
     const double eclipticLongitude = normalizeDegrees(meanAnomaly + center + 180.0 + 102.9372);
-    const double transit = approximateNoon + 0.0053 * sinDegrees(meanAnomaly) -
-                           0.0069 * sinDegrees(2.0 * eclipticLongitude);
+    const double transit =
+        approximateNoon + 0.0053 * sinDegrees(meanAnomaly) - 0.0069 * sinDegrees(2.0 * eclipticLongitude);
     const double declination = asinDegrees(sinDegrees(eclipticLongitude) * sinDegrees(23.4397));
     const double denominator = cosDegrees(location.latitude) * cosDegrees(declination);
     if (std::fabs(denominator) < 1e-12) return {};
@@ -92,8 +92,7 @@ class Zmanim final {
     }
     const int century = year / 100;
     const int correction = 2 - century + century / 4;
-    return std::floor(365.25 * (year + 4716)) + std::floor(30.6001 * (month + 1)) + date.day + correction -
-           1524.5;
+    return std::floor(365.25 * (year + 4716)) + std::floor(30.6001 * (month + 1)) + date.day + correction - 1524.5;
   }
 };
 

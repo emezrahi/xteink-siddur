@@ -17,10 +17,10 @@ class LiturgicalRules final {
     context.isHolHamoed = isHolHamoed(date, diaspora);
     context.sayYaalehVeyavo = context.isRoshHodesh || context.isYomTov || context.isHolHamoed;
     context.sayAlHanissim = context.isHanukkah || context.isPurim;
-    context.sayMussaf = context.isRoshHodesh || context.isYomTov || context.isHolHamoed ||
-                        context.weekday == Weekday::Shabbat;
-    context.sayAneinu = context.isFastDay && (context.service == PrayerService::Shaharit ||
-                                              context.service == PrayerService::Minha);
+    context.sayMussaf =
+        context.isRoshHodesh || context.isYomTov || context.isHolHamoed || context.weekday == Weekday::Shabbat;
+    context.sayAneinu =
+        context.isFastDay && (context.service == PrayerService::Shaharit || context.service == PrayerService::Minha);
     context.hallel = hallel(date, diaspora);
     context.sayTachanun = shouldSayTachanun(date, context, diaspora);
     context.omerDay = omerDay(date);
@@ -33,8 +33,8 @@ class LiturgicalRules final {
   [[nodiscard]] static bool isYomTov(const HebrewDate& date, const bool diaspora) {
     switch (date.month) {
       case HebrewMonth::Tishrei:
-        return date.day <= 2 || date.day == 10 || date.day == 15 || (diaspora && date.day == 16) ||
-               date.day == 22 || (diaspora && date.day == 23);
+        return date.day <= 2 || date.day == 10 || date.day == 15 || (diaspora && date.day == 16) || date.day == 22 ||
+               (diaspora && date.day == 23);
       case HebrewMonth::Nisan:
         return date.day == 15 || (diaspora && date.day == 16) || date.day == 21 || (diaspora && date.day == 22);
       case HebrewMonth::Sivan:
@@ -96,7 +96,7 @@ class LiturgicalRules final {
   }
 
   [[nodiscard]] static bool shouldSayTachanun(const HebrewDate& date, const PrayerContext& context,
-                                               const bool diaspora) {
+                                              const bool diaspora) {
     if (context.weekday == Weekday::Shabbat || context.isRoshHodesh || context.isYomTov || context.isHolHamoed ||
         context.isHanukkah || context.isPurim) {
       return false;
@@ -137,9 +137,7 @@ class LiturgicalRules final {
     if (!diaspora) {
       if (date.month == HebrewMonth::Cheshvan && date.day >= 7) return RainRequest::BarechAleinu;
       const int month = static_cast<int>(date.month);
-      return month > static_cast<int>(HebrewMonth::Cheshvan)
-                 ? RainRequest::BarechAleinu
-                 : RainRequest::Barechenu;
+      return month > static_cast<int>(HebrewMonth::Cheshvan) ? RainRequest::BarechAleinu : RainRequest::Barechenu;
     }
 
     if (civilDate.month < 4) return RainRequest::BarechAleinu;
