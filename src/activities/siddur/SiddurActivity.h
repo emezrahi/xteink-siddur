@@ -24,6 +24,8 @@ class SiddurActivity final : public Activity {
   bool cleanRefreshPending = true;
   bool hasLocalCivilDate = false;
   SiddurEngine::CivilDate localCivilDate{1970, 1, 1};
+  SiddurEngine::CivilDateTime localDateTime{{1970, 1, 1}, 0, 0};
+  bool afterSunset = false;
   std::string localDateTimePreview;
   std::string hebrewDatePreview;
 
