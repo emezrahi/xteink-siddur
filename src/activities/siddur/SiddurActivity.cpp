@@ -23,12 +23,10 @@
 namespace {
 constexpr int kSideMargin = 24;
 constexpr int kTitleY = 46;
-constexpr int kSectionTitleY = 105;
-constexpr int kPrayerTitleY = 155;
-constexpr int kPrayerStartY = 215;
+constexpr int kPrayerStartY = 55;
 constexpr int kLineGap = 9;
-constexpr int kMaxPrayerLines = 11;
-constexpr int kFooterReserve = 72;
+constexpr int kMaxPrayerLines = 20;
+constexpr int kFooterReserve = 24;
 constexpr int kChapterTop = 140;
 constexpr int kChapterRowHeight = 54;
 
@@ -84,22 +82,18 @@ const char* serviceName(const SiddurEngine::PrayerService service) {
   return "";
 }
 
-// The body must stop above the page counter and the theme's button hints.
+// Section selection keeps its position indicator; reading pages reserve only the button hints.
 int pageNumberY(const GfxRenderer& renderer) {
   const Rect safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
   return safe.y + safe.height - 24;
 }
 
-int prayerTextStartY(const SiddurContent::EdotWeekdayShaharit::PrayerTextBlock* block) {
-  return block != nullptr && std::strcmp(block->sectionTitle, block->title) == 0 ? kPrayerStartY - 45 : kPrayerStartY;
-}
-
-int linesPerPage(const GfxRenderer& renderer, const SiddurContent::EdotWeekdayShaharit::PrayerTextBlock* block) {
+int linesPerPage(const GfxRenderer& renderer) {
   const int lineHeight = renderer.getLineHeight(SIDDUR_HEBREW_16_FONT_ID);
   const int rowHeight = lineHeight + kLineGap;
   const Rect safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
   const int bottom = safe.y + safe.height - kFooterReserve;
-  const int available = bottom - prayerTextStartY(block) - lineHeight;
+  const int available = bottom - kPrayerStartY - lineHeight;
   return std::clamp(available / rowHeight + 1, 1, kMaxPrayerLines);
 }
 
@@ -386,7 +380,7 @@ void SiddurActivity::showPreviousPrayer() {
   const auto* block = SiddurContent::EdotWeekdayShaharit::findBlock(composedPrayer[prayerIndex]);
 
   if (block != nullptr && textOffset > 0) {
-    textOffset = previousPageOffset(renderer, block->text, textOffset, maxWidth, linesPerPage(renderer, block));
+    textOffset = previousPageOffset(renderer, block->text, textOffset, maxWidth, linesPerPage(renderer));
     if (textPageIndex > 0) --textPageIndex;
     requestUpdate();
     return;
@@ -399,7 +393,7 @@ void SiddurActivity::showPreviousPrayer() {
   if (block == nullptr) {
     resetTextPage();
   } else {
-    const auto last = lastPagePosition(renderer, block->text, maxWidth, linesPerPage(renderer, block));
+    const auto last = lastPagePosition(renderer, block->text, maxWidth, linesPerPage(renderer));
     textOffset = last.first;
     textPageIndex = last.second;
     nextTextOffset = textOffset;
@@ -545,29 +539,17 @@ void SiddurActivity::render(RenderLock&&) {
       return;
     }
 
-    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kTitleY, SiddurContent::EdotWeekdayShaharit::kShaharitTitle);
-    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kSectionTitleY, block->sectionTitle);
-    if (std::strcmp(block->sectionTitle, block->title) != 0) {
-      drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kPrayerTitleY, block->title);
-    }
-
     const int maxWidth = renderer.getScreenWidth() - 2 * kSideMargin;
-    const int startY = prayerTextStartY(block);
-    const auto page = layoutTextPage(renderer, block->text, textOffset, maxWidth, linesPerPage(renderer, block));
+    const auto page = layoutTextPage(renderer, block->text, textOffset, maxWidth, linesPerPage(renderer));
     nextTextOffset = page.nextOffset;
     hasNextTextPage = page.hasNext;
 
     const int lineHeight = renderer.getLineHeight(SIDDUR_HEBREW_16_FONT_ID);
-    int y = startY;
+    int y = kPrayerStartY;
     for (const auto& line : page.lines) {
       if (!line.empty()) drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, y, line.c_str());
       y += lineHeight + kLineGap;
     }
-
-    char pageLabel[40];
-    std::snprintf(pageLabel, sizeof(pageLabel), "%u/%u  p%u", static_cast<unsigned>(prayerIndex + 1),
-                  static_cast<unsigned>(composedPrayer.size()), static_cast<unsigned>(textPageIndex + 1));
-    renderer.drawCenteredText(UI_10_FONT_ID, pageNumberY(renderer), pageLabel);
 
     const auto labels = mappedInput.mapLabels("Back", "", "Previous", "Next");
     GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
