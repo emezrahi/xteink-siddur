@@ -5,6 +5,7 @@
 #include <PrayerBlockId.h>
 #include <PrayerContext.h>
 
+#include <array>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -12,11 +13,18 @@
 #include "activities/Activity.h"
 
 class SiddurActivity final : public Activity {
-  enum class View { Menu, Shaharit };
+  enum class View { Menu, Chapters, Prayer };
+  struct Chapter {
+    const char* title = nullptr;
+    std::size_t firstPrayerIndex = 0;
+  };
 
   View view = View::Menu;
   SiddurEngine::PrayerContext prayerContext;
   std::vector<SiddurEngine::PrayerBlockId> composedPrayer;
+  std::array<Chapter, 16> chapters{};
+  std::size_t chapterCount = 0;
+  std::size_t selectedChapter = 0;
   std::size_t prayerIndex = 0;
   std::size_t textOffset = 0;
   std::size_t nextTextOffset = 0;
@@ -32,6 +40,8 @@ class SiddurActivity final : public Activity {
 
   void refreshCalendarPreview();
   void openShaharit();
+  void buildChapters();
+  void openSelectedChapter();
   void resetTextPage();
   void showPreviousPrayer();
   void showNextPrayer();
