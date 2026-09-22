@@ -91,12 +91,10 @@ int pageNumberY(const GfxRenderer& renderer) {
 }
 
 int prayerTextStartY(const SiddurContent::EdotWeekdayShaharit::PrayerTextBlock* block) {
-  return block != nullptr && std::strcmp(block->sectionTitle, block->title) == 0 ? kPrayerStartY - 45
-                                                                                  : kPrayerStartY;
+  return block != nullptr && std::strcmp(block->sectionTitle, block->title) == 0 ? kPrayerStartY - 45 : kPrayerStartY;
 }
 
-int linesPerPage(const GfxRenderer& renderer,
-                 const SiddurContent::EdotWeekdayShaharit::PrayerTextBlock* block) {
+int linesPerPage(const GfxRenderer& renderer, const SiddurContent::EdotWeekdayShaharit::PrayerTextBlock* block) {
   const int lineHeight = renderer.getLineHeight(SIDDUR_HEBREW_16_FONT_ID);
   const int rowHeight = lineHeight + kLineGap;
   const Rect safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
@@ -166,7 +164,7 @@ const char* chapterTitle(const SiddurEngine::PrayerBlockId id) {
       return "שיר של יום";
     case PrayerBlockId::Kaveh:
     case PrayerBlockId::Aleinu:
-      return "עלינו לשבח";
+      return "סיום התפילה";
     case PrayerBlockId::MussafRoshHodesh:
     case PrayerBlockId::MussafFestival:
       return "מוסף";
@@ -247,7 +245,7 @@ TextPage layoutTextPage(GfxRenderer& renderer, const char* text, const std::size
 }
 
 std::pair<std::size_t, std::size_t> lastPagePosition(GfxRenderer& renderer, const char* text, const int maxWidth,
-                                                    const int maxLines) {
+                                                     const int maxLines) {
   std::size_t offset = 0;
   std::size_t pageIndex = 0;
 
@@ -513,7 +511,6 @@ void SiddurActivity::render(RenderLock&&) {
       drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kTitleY, SiddurContent::EdotWeekdayShaharit::kShaharitTitle);
       renderer.drawCenteredText(UI_12_FONT_ID, 98, "CONTENTS", true, EpdFontFamily::BOLD);
 
-      const Rect safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
       const int available = pageNumberY(renderer) - kChapterTop - 38;
       const std::size_t visible = static_cast<std::size_t>(std::max(1, available / kChapterRowHeight));
       const std::size_t first = (selectedChapter / visible) * visible;
@@ -521,8 +518,7 @@ void SiddurActivity::render(RenderLock&&) {
       for (std::size_t i = first; i < last; ++i) {
         const int y = kChapterTop + static_cast<int>(i - first) * kChapterRowHeight;
         if (i == selectedChapter) {
-          renderer.drawRect(kSideMargin, y - 5, renderer.getScreenWidth() - 2 * kSideMargin,
-                            kChapterRowHeight - 3);
+          renderer.drawRect(kSideMargin, y - 5, renderer.getScreenWidth() - 2 * kSideMargin, kChapterRowHeight - 3);
         }
         char index[12];
         std::snprintf(index, sizeof(index), "%u", static_cast<unsigned>(i + 1));
