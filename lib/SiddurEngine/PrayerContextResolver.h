@@ -1,7 +1,9 @@
 #pragma once
 
 #include "HebrewCalendar.h"
+#include "LiturgicalRules.h"
 #include "PrayerContext.h"
+#include "ServiceSelector.h"
 
 namespace SiddurEngine {
 
@@ -13,7 +15,8 @@ struct PrayerContextResolution {
 class PrayerContextResolver final {
  public:
   [[nodiscard]] static PrayerContextResolution resolve(const PrayerService service, CivilDate civilDate,
-                                                       const bool afterSunset) {
+                                                       const bool afterSunset, const bool diaspora = true) {
+    const CivilDate prayerCivilDate = civilDate;
     if (afterSunset) {
       civilDate = nextCivilDate(civilDate);
     }
@@ -23,9 +26,16 @@ class PrayerContextResolver final {
     PrayerContext context;
     context.service = service;
     context.weekday = weekdayFromCivilDate(civilDate);
-    context.isRoshHodesh = HebrewCalendar::isRoshHodesh(hebrewDate);
+    LiturgicalRules::apply(context, hebrewDate, prayerCivilDate, diaspora);
 
     return {context, hebrewDate};
+  }
+
+  [[nodiscard]] static PrayerContextResolution resolve(const CivilDateTime& local, const LocationConfig& location) {
+    const DailyZmanim zmanim = Zmanim::calculate(local.date, location);
+    const PrayerService service = ServiceSelector::select(local, zmanim);
+    const bool afterSunset = zmanim.valid && local.hour * 60 + local.minute >= zmanim.sunsetMinutes;
+    return resolve(service, local.date, afterSunset, location.diaspora);
   }
 
  private:

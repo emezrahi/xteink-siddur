@@ -4,6 +4,8 @@ add_executable(siddur_engine_tests
   PrayerContextResolverTest.cpp
   LocalClockTest.cpp
   ServiceGeneratorPlanTest.cpp
+  ZmanimTest.cpp
+  LiturgicalRulesTest.cpp
 )
 
 target_include_directories(siddur_engine_tests PRIVATE

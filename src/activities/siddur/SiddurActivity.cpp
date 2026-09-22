@@ -6,6 +6,7 @@
 #include <HebrewCalendar.h>
 #include <LocalClock.h>
 #include <PrayerContextResolver.h>
+#include <Zmanim.h>
 
 #include <cstdio>
 #include <cstring>
@@ -62,6 +63,20 @@ const char* hebrewMonthName(const SiddurEngine::HebrewMonth month) {
       return "Adar";
     case SiddurEngine::HebrewMonth::AdarII:
       return "Adar II";
+  }
+  return "";
+}
+
+const char* serviceName(const SiddurEngine::PrayerService service) {
+  switch (service) {
+    case SiddurEngine::PrayerService::Shaharit:
+      return "Shaharit";
+    case SiddurEngine::PrayerService::Minha:
+      return "Minha";
+    case SiddurEngine::PrayerService::Arvit:
+      return "Arvit";
+    case SiddurEngine::PrayerService::Musaf:
+      return "Mussaf";
   }
   return "";
 }
@@ -186,10 +201,17 @@ void SiddurActivity::refreshCalendarPreview() {
       static_cast<int>(utc.hour),
       static_cast<int>(utc.minute),
   };
-  const auto localDateTime = SiddurEngine::LocalClock::applyUtcOffset(utcDateTime, SETTINGS.clockUtcOffsetQ);
+  localDateTime = SiddurEngine::LocalClock::applyUtcOffset(utcDateTime, SETTINGS.clockUtcOffsetQ);
   localCivilDate = localDateTime.date;
   hasLocalCivilDate = true;
-  const auto hebrewDate = SiddurEngine::HebrewCalendar::fromGregorian(localDateTime.date);
+  SiddurEngine::LocationConfig location;
+  location.latitude = static_cast<double>(SETTINGS.siddurLatitudeE6) / 1000000.0;
+  location.longitude = static_cast<double>(SETTINGS.siddurLongitudeE6) / 1000000.0;
+  location.utcOffsetMinutes = (static_cast<int>(SETTINGS.clockUtcOffsetQ) - 48) * 15;
+  location.diaspora = SETTINGS.siddurDiaspora != 0;
+  const auto resolved = SiddurEngine::PrayerContextResolver::resolve(localDateTime, location);
+  const auto hebrewDate = resolved.hebrewDate;
+  afterSunset = SiddurEngine::Zmanim::isAfterSunset(localDateTime, location);
 
   char localBuffer[32];
   std::snprintf(localBuffer, sizeof(localBuffer), "%04d-%02d-%02d  %02d:%02d", localDateTime.date.year,
@@ -197,8 +219,8 @@ void SiddurActivity::refreshCalendarPreview() {
   localDateTimePreview = localBuffer;
 
   char hebrewBuffer[48];
-  std::snprintf(hebrewBuffer, sizeof(hebrewBuffer), "Daytime Hebrew date: %d %s %d", hebrewDate.day,
-                hebrewMonthName(hebrewDate.month), hebrewDate.year);
+  std::snprintf(hebrewBuffer, sizeof(hebrewBuffer), "%d %s %d | %s", hebrewDate.day, hebrewMonthName(hebrewDate.month),
+                hebrewDate.year, serviceName(resolved.context.service));
   hebrewDatePreview = hebrewBuffer;
 }
 
@@ -211,9 +233,9 @@ void SiddurActivity::resetTextPage() {
 
 void SiddurActivity::openShaharit() {
   if (hasLocalCivilDate) {
-    prayerContext =
-        SiddurEngine::PrayerContextResolver::resolve(SiddurEngine::PrayerService::Shaharit, localCivilDate, false)
-            .context;
+    prayerContext = SiddurEngine::PrayerContextResolver::resolve(SiddurEngine::PrayerService::Shaharit, localCivilDate,
+                                                                 afterSunset, SETTINGS.siddurDiaspora != 0)
+                        .context;
   } else {
     prayerContext = {};
     prayerContext.service = SiddurEngine::PrayerService::Shaharit;
