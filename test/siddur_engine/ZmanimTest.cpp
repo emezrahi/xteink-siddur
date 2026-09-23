@@ -21,6 +21,21 @@ TEST(Zmanim, RejectsInvalidLocation) {
   EXPECT_FALSE(SiddurEngine::Zmanim::calculate({2026, 9, 20}, location).valid);
 }
 
+TEST(Zmanim, RejectsOutOfRangeLongitudeAndUtcOffsets) {
+  SiddurEngine::LocationConfig location;
+
+  location.longitude = 181.0;
+  EXPECT_FALSE(SiddurEngine::Zmanim::calculate({2026, 9, 20}, location).valid);
+  location.longitude = -181.0;
+  EXPECT_FALSE(SiddurEngine::Zmanim::calculate({2026, 9, 20}, location).valid);
+
+  location.longitude = -73.9496;
+  location.utcOffsetMinutes = -721;
+  EXPECT_FALSE(SiddurEngine::Zmanim::calculate({2026, 9, 20}, location).valid);
+  location.utcOffsetMinutes = 841;
+  EXPECT_FALSE(SiddurEngine::Zmanim::calculate({2026, 9, 20}, location).valid);
+}
+
 TEST(ServiceSelector, ChoosesServiceFromSolarBoundaries) {
   const SiddurEngine::DailyZmanim zmanim{400, 770, 1140, true};
   EXPECT_EQ(SiddurEngine::ServiceSelector::select({{2026, 9, 20}, 6, 0}, zmanim), SiddurEngine::PrayerService::Arvit);
