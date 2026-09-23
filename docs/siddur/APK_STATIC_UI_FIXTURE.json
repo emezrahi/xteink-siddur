@@ -1,0 +1,339 @@
+{
+  "schema": "x3-smart-siddur-static-ui-reference/v1",
+  "source": {
+    "package": "com.karriapps.smartsiddurlite",
+    "version": "7.5.286",
+    "versionCode": 286,
+    "base_apk_sha256": "e5e36e41d9e317ad920f173e4383c04ca9aa4b39aade4ba65ec64882147e35ac",
+    "evidence": "res/menu/navigation.xml, res/menu/tfila_menu.xml, res/xml/preferences.xml, res/xml/zmanim_preferences.xml, compiled resources.arsc",
+    "limitations": "Only static resource facts; runtime menu visibility, generator rows and default fonts are not proven."
+  },
+  "navigation": [
+    {
+      "id": "calendar_menu_group",
+      "he": "לוח שנה וזמנים",
+      "en": "Calendar and Zmanim",
+      "items": [
+        {
+          "id": "calendar_menu",
+          "he": "לוח שנה וזמנים",
+          "en": "Calendar and Zmanim"
+        },
+        {
+          "id": "reminders",
+          "he": "תזכורות",
+          "en": "Reminders"
+        }
+      ]
+    },
+    {
+      "id": "special_menu",
+      "he": "מועדים מיוחדים",
+      "en": "Special Holidays",
+      "items": [
+        {
+          "id": "omer_menu",
+          "he": "ספירת העומר",
+          "en": "The Counting of the Omer"
+        },
+        {
+          "id": "ushpizin_menu",
+          "he": "עולו אושפיזין",
+          "en": "Ulu Ushpizin"
+        },
+        {
+          "id": "lag_omer_menu",
+          "he": "לג בעומר",
+          "en": "Lag BaOmer"
+        },
+        {
+          "id": "levana_menu",
+          "he": "ברכת הלבנה",
+          "en": "Birkat HaLevana"
+        },
+        {
+          "id": "havdala_menu",
+          "he": "הבדלה",
+          "en": "Havdala"
+        },
+        {
+          "id": "hanuka_menu",
+          "he": "הדלקת נר חנוכה",
+          "en": "Hanuka Lighting"
+        },
+        {
+          "id": "ilanot_menu",
+          "he": "ברכת האילנות",
+          "en": "Birkat HaIlanot"
+        },
+        {
+          "id": "kinot_menu",
+          "he": "קינות",
+          "en": "Kinnot"
+        },
+        {
+          "id": "slichotMenu",
+          "he": "סליחות",
+          "en": "Slichot"
+        },
+        {
+          "id": "nedarimMenu",
+          "he": "התרת נדרים",
+          "en": "Annullment of Vows"
+        }
+      ]
+    },
+    {
+      "id": "daily_menu",
+      "he": "תפילות יומיות",
+      "en": "Daily Prayers",
+      "items": [
+        {
+          "id": "shacharit_menu",
+          "he": "שחרית",
+          "en": "Shacharit"
+        },
+        {
+          "id": "mincha_menu",
+          "he": "מנחה",
+          "en": "Mincha"
+        },
+        {
+          "id": "arvit_menu",
+          "he": "ערבית",
+          "en": "Arvit"
+        },
+        {
+          "id": "asher_yatzar_menu",
+          "he": "אשר יצר",
+          "en": "Asher Yatzar"
+        },
+        {
+          "id": "bedtime_shma_menu",
+          "he": "קריאת שמע שעל המיטה",
+          "en": "Bedtime Shma"
+        },
+        {
+          "id": "chatzot_menu",
+          "he": "תיקון חצות",
+          "en": "Tikun Chatzot"
+        }
+      ]
+    },
+    {
+      "id": "blessings_menu",
+      "he": "ברכות",
+      "en": "Blessings",
+      "items": [
+        {
+          "id": "mazon_menu",
+          "he": "ברכת המזון",
+          "en": "Birkat HaMazon"
+        },
+        {
+          "id": "threefold_menu",
+          "he": "מעין שלוש",
+          "en": "The Threefold Blessing"
+        },
+        {
+          "id": "hala_menu",
+          "he": "הפרשת חלה",
+          "en": "Dough offering"
+        },
+        {
+          "id": "other_blessings_menu",
+          "he": "ברכות נוספות",
+          "en": "Other Blessings"
+        },
+        {
+          "id": "maaser_menu",
+          "he": "הפרשת תרומות ומעשרות",
+          "en": "Tithes"
+        },
+        {
+          "id": "haderech_menu",
+          "he": "תפילת הדרך",
+          "en": "The Traveler's Prayer"
+        },
+        {
+          "id": "mila_menu",
+          "he": "ברית מילה",
+          "en": "Brit Mila"
+        },
+        {
+          "id": "sheva_brachot_menu",
+          "he": "שבע ברכות",
+          "en": "Sheva Berachot"
+        }
+      ]
+    }
+  ],
+  "footer": [
+    {
+      "id": "logout_menu",
+      "he": "צא מהחשבון",
+      "en": "Logout"
+    },
+    {
+      "id": "locations_menu",
+      "he": "מיקומים",
+      "en": "Locations"
+    },
+    {
+      "id": "settings_menu",
+      "he": "הגדרות",
+      "en": "Settings"
+    },
+    {
+      "id": "info_menu",
+      "he": "עזרה ומשוב",
+      "en": "Help and Feedback"
+    }
+  ],
+  "nusach": [
+    {
+      "value": "0",
+      "he": "עדות המזרח",
+      "en": "Edot HaMizrach"
+    },
+    {
+      "value": "1",
+      "he": "ספרד",
+      "en": "Sfarad"
+    },
+    {
+      "value": "2",
+      "he": "אשכנז",
+      "en": "Ashkenaz"
+    },
+    {
+      "value": "3",
+      "he": "אר\"י (חב\"ד)",
+      "en": "Ari (Chabad)"
+    }
+  ],
+  "prayerMenu": {
+    "modes": [
+      {
+        "value": "0",
+        "en": "Normal Mode",
+        "he": "מצב רגיל"
+      },
+      {
+        "value": "1",
+        "en": "Yahid Mode",
+        "he": "מצב יחיד"
+      },
+      {
+        "value": "2",
+        "en": "Chazan Mode",
+        "he": "מצב חזן"
+      }
+    ],
+    "occasions": [
+      "Mourning House",
+      "No Tahanun"
+    ],
+    "actions": [
+      "Options",
+      "Theme",
+      "Share"
+    ],
+    "nusachMenuInitiallyHiddenInXml": true
+  },
+  "appearance": {
+    "fontNames": [
+      "Default",
+      "Shofar",
+      "Keter",
+      "Alef"
+    ],
+    "themeOptions": [
+      "Light",
+      "Dark"
+    ],
+    "otherControls": [
+      "Show Titles",
+      "Line Spacing",
+      "Font Selector",
+      "Save",
+      "Pinch text-size overlay"
+    ],
+    "fontDefault": null,
+    "fontDefaultUnverified": true
+  },
+  "zmanim": [
+    {
+      "key": "_24",
+      "default": true,
+      "label": "Use 24 hour format"
+    },
+    {
+      "key": "shabbat_start",
+      "default": 20,
+      "label": "Candle Lighting Time",
+      "unit": "minutes before sunset"
+    },
+    {
+      "key": "shabbat_ends",
+      "default": "1",
+      "label": "Havdala",
+      "options": [
+        "20 Minutes after Sunset",
+        "Three Small Stars",
+        "40 Minutes after Sunset",
+        "72 Minutes after Sunset"
+      ]
+    },
+    {
+      "key": "dawn",
+      "default": "1",
+      "label": "Dawn (Alot HaShachar)",
+      "options": [
+        "90 Minutes before Sunrise",
+        "72 Minutes before Sunrise",
+        "72 Minutes as 16.1 degrees"
+      ]
+    },
+    {
+      "key": "sunrise",
+      "default": "1",
+      "label": "Sunrise and Sunset",
+      "options": [
+        "Elevation adjusted sunrise time",
+        "In a level region"
+      ]
+    },
+    {
+      "key": "zamnKlali",
+      "default": "1",
+      "label": "General Shita",
+      "options": [
+        "Magen Avraham",
+        "Gra and Baal Tanya"
+      ]
+    },
+    {
+      "key": "tzet",
+      "default": "2",
+      "label": "Dusk (Tzet HaKochavim)",
+      "options": [
+        "Hacham Ovadia Yosef - 13.5 Minutes after Sunset",
+        "GRA - 18 Minutes after Sunset",
+        "Baal Hatania - 24 Minutes after Sunset",
+        "Chazon Ish - 40 Minutes after Sunset",
+        "Rabenu Tam - 72 Minutes after Sunset"
+      ]
+    },
+    {
+      "key": "change",
+      "default": "1",
+      "label": "Change Date With",
+      "options": [
+        "Sunset",
+        "5 Minutes after Sunset",
+        "Tzeit"
+      ]
+    }
+  ]
+}
