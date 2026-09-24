@@ -399,17 +399,18 @@ void SiddurActivity::render(RenderLock&&) {
       if (preview) rows[rowCount++] = preview.value()->hebrew;
     }
     if (rowCount > 0) {
-      GUI.drawRtlButtonMenu(
-          renderer, Rect{0, kMenuTop, renderer.getScreenWidth(), renderer.getScreenHeight() - kMenuTop},
-          std::span<const std::string_view>(rows.data(), rowCount), static_cast<int>(selectedOffset),
-          SIDDUR_HEBREW_16_FONT_ID);
+      GUI.drawRtlButtonMenu(renderer,
+                            Rect{0, kMenuTop, renderer.getScreenWidth(), renderer.getScreenHeight() - kMenuTop},
+                            std::span<const std::string_view>(rows.data(), rowCount), static_cast<int>(selectedOffset),
+                            SIDDUR_HEBREW_16_FONT_ID);
     }
 
     char pageLabel[24] = {};
     const auto page = menuState.screen() == SiddurMenu::Screen::Nusach ? menuState.nusachMenu().page()
                                                                        : menuState.menu().selection().page();
-    if (page) std::snprintf(pageLabel, sizeof(pageLabel), "%u-%u", static_cast<unsigned>(page->first + 1),
-                            static_cast<unsigned>(page->pastLast));
+    if (page)
+      std::snprintf(pageLabel, sizeof(pageLabel), "%u-%u", static_cast<unsigned>(page->first + 1),
+                    static_cast<unsigned>(page->pastLast));
     renderer.drawCenteredText(UI_10_FONT_ID,
                               renderer.getScreenHeight() - UITheme::getInstance().getMetrics().buttonHintsHeight - 20,
                               pageLabel);
