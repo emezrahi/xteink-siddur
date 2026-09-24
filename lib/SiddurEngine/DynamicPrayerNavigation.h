@@ -9,8 +9,10 @@
 
 namespace SiddurDynamicPrayerNavigation {
 
-// Descriptors must remain alive and unchanged for the navigator's lifetime.
-// sourceRowIndex is the descriptor's position in the caller's ordered row span.
+// The caller must keep both the row descriptors AND the character storage
+// referenced by id/title string_views alive and unchanged until navigation ends.
+// Never populate views from temporary strings. Source-row indices refer to the
+// descriptor's position in the caller's ordered span.
 struct PrayerRow {
   std::string_view id;
   std::string_view title;

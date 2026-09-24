@@ -4,6 +4,7 @@
 #include <array>
 #include <limits>
 #include <span>
+#include <string>
 
 namespace Nav = SiddurDynamicPrayerNavigation;
 
@@ -129,4 +130,18 @@ TEST(SiddurDynamicPrayerNavigation, SingleVisibleEntryHasStableBackNavigation) {
   contents.back();
   EXPECT_EQ(contents.selected()->sourceRowIndex, 1U);
   EXPECT_EQ(contents.choose(), std::optional<std::size_t>{1});
+}
+
+TEST(SiddurDynamicPrayerNavigation, UsesStableDynamicallyOwnedLabelStorage) {
+  // Models generator-owned text buffers that outlive both rows and navigator.
+  const std::array<std::string, 3> ownedText = {"row-id", "תפילה לדוגמה", "second-title"};
+  const std::array rows = {
+      Nav::PrayerRow{ownedText[0], ownedText[1], true},
+      Nav::PrayerRow{"second-id", ownedText[2], true},
+  };
+  const Nav::PrayerContents contents(rows, 2);
+  ASSERT_TRUE(contents.entry(0).has_value());
+  EXPECT_EQ(contents.entry(0)->id, ownedText[0]);
+  EXPECT_EQ(contents.entry(0)->title, ownedText[1]);
+  EXPECT_EQ(contents.entry(1)->title, ownedText[2]);
 }

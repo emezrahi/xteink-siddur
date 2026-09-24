@@ -2,6 +2,8 @@
 
 **Owner has authorized Codex coding and manual review.** Implement on branch `codex/siddur-prayer-row-navigation-phase2` against merged `master`. Submit changes to the existing draft PR. No force pushes, resets, hidden costs, automatic merge or deployment.
 
+**Branch-specific exception to the inherited upstream workflow:** In this X3 Siddur fork, `master` contains the Siddur engine and merged PR #16, whereas the default `develop` branch follows newer upstream CrossPoint development and has diverged. The owner explicitly designated `master` as the X3 Siddur integration target for this task. Do not retarget this PR to `develop`; reconciling the two branches is a separate, potentially substantial integration project.
+
 ## Read first
 
 - `AGENTS.md` for ESP32-C3 memory rules (380 KB usable RAM), repository's clang-format-21 wrapper and build/test instructions.
