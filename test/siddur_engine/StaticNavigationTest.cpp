@@ -2,12 +2,13 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <limits>
 
 namespace Nav = SiddurStaticNavigation;
 
 TEST(SiddurStaticNavigation, ExposesExactCategoryShapeAndAllLeaves) {
-  constexpr std::array<std::string_view, 4> categoryIds = {
-      "calendar_menu_group", "special_menu", "daily_menu", "blessings_menu"};
+  constexpr std::array<std::string_view, 4> categoryIds = {"calendar_menu_group", "special_menu", "daily_menu",
+                                                           "blessings_menu"};
   constexpr std::array<std::size_t, 4> itemCounts = {2, 10, 6, 8};
 
   ASSERT_EQ(Nav::categories().size(), categoryIds.size());
@@ -31,8 +32,7 @@ TEST(SiddurStaticNavigation, SelectsLabelsWithoutAllocatingTranslations) {
 
 TEST(SiddurStaticNavigation, KeepsAllVerifiedNusachMetadata) {
   constexpr std::array<std::string_view, 4> values = {"0", "1", "2", "3"};
-  constexpr std::array<std::string_view, 4> english = {
-      "Edot HaMizrach", "Sfarad", "Ashkenaz", "Ari (Chabad)"};
+  constexpr std::array<std::string_view, 4> english = {"Edot HaMizrach", "Sfarad", "Ashkenaz", "Ari (Chabad)"};
   ASSERT_EQ(Nav::nusachChoices().size(), values.size());
   for (std::size_t index = 0; index < values.size(); ++index) {
     EXPECT_EQ(Nav::nusachChoices()[index].value, values[index]);
@@ -68,6 +68,23 @@ TEST(SiddurStaticNavigation, ClampsSingleStepMovementAtEdges) {
   EXPECT_EQ(*selection.selected(), 1U);
 }
 
+TEST(SiddurStaticNavigation, AvoidsOverflowWhenPageCapacityIsHuge) {
+  const std::size_t maximum = std::numeric_limits<std::size_t>::max();
+  Nav::PagedSelection oversized(maximum, maximum / 2 + 1);
+  oversized.pageForward();
+  ASSERT_TRUE(oversized.page().has_value());
+  EXPECT_EQ(oversized.page()->first, maximum / 2 + 1);
+  EXPECT_EQ(oversized.page()->pastLast, maximum);
+
+  Nav::PagedSelection fullPage(8, maximum);
+  fullPage.down();
+  fullPage.pageForward();
+  EXPECT_EQ(*fullPage.selected(), 7U);
+  ASSERT_TRUE(fullPage.page().has_value());
+  EXPECT_EQ(fullPage.page()->first, 0U);
+  EXPECT_EQ(fullPage.page()->pastLast, 8U);
+}
+
 TEST(SiddurStaticNavigation, ZeroRowsAndEmptyCollectionsFailSafely) {
   Nav::PagedSelection zeroRows(2, 0);
   Nav::PagedSelection empty(0, 2);
@@ -94,8 +111,8 @@ TEST(SiddurStaticNavigation, EntersReturnsAndChangesCategory) {
 }
 
 TEST(SiddurStaticNavigation, PrototypePrayerRowsCannotEnterStaticMenu) {
-  constexpr std::array<std::string_view, 5> unverifiedIds = {
-      "ModehAni", "MorningBlessings", "PesukeiDeZimra", "WeekdayAmidah", "Aleinu"};
+  constexpr std::array<std::string_view, 5> unverifiedIds = {"ModehAni", "MorningBlessings", "PesukeiDeZimra",
+                                                             "WeekdayAmidah", "Aleinu"};
   for (const auto& category : Nav::categories()) {
     for (const auto& item : category.items()) {
       for (const auto id : unverifiedIds) EXPECT_NE(item.id, id);

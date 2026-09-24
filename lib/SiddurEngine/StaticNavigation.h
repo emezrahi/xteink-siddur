@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <optional>
 #include <span>
@@ -50,8 +51,7 @@ struct PageBounds {
 
 class PagedSelection {
  public:
-  constexpr PagedSelection(std::size_t itemCount, std::size_t visibleRows)
-      : count(itemCount), rows(visibleRows) {}
+  constexpr PagedSelection(std::size_t itemCount, std::size_t visibleRows) : count(itemCount), rows(visibleRows) {}
 
   [[nodiscard]] constexpr bool valid() const { return count > 0 && rows > 0; }
   [[nodiscard]] constexpr std::optional<std::size_t> selected() const {
@@ -60,7 +60,7 @@ class PagedSelection {
   [[nodiscard]] constexpr std::optional<PageBounds> page() const {
     if (!valid()) return std::nullopt;
     const std::size_t first = (index / rows) * rows;
-    return PageBounds{first, std::min(first + rows, count)};
+    return PageBounds{first, first + std::min(rows, count - first)};
   }
   constexpr void up() {
     if (valid() && index > 0) --index;
@@ -74,7 +74,7 @@ class PagedSelection {
   }
   constexpr void pageForward() {
     if (!valid()) return;
-    index = std::min(index + rows, count - 1);
+    index += std::min(rows, (count - 1) - index);
   }
 
  private:
