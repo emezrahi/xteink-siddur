@@ -94,6 +94,7 @@ class NavigationSelection {
   [[nodiscard]] constexpr const PagedSelection& selection() const {
     return currentLevel == Level::Categories ? categoryCursor : itemCursor;
   }
+  [[nodiscard]] constexpr std::size_t categoryIndex() const { return selectedCategory; }
   [[nodiscard]] constexpr std::optional<const MenuEntry*> choose() {
     const auto selectedIndex = selection().selected();
     if (!selectedIndex) return std::nullopt;

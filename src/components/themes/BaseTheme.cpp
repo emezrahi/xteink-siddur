@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <string>
 
 #include "I18n.h"
@@ -661,6 +662,32 @@ void BaseTheme::drawButtonMenu(GfxRenderer& renderer, Rect rect, int buttonCount
         tileY + (BaseMetrics::values.menuRowHeight - lineHeight) / 2;  // vertically centered assuming y is top of text
     // Invert text when the tile is selected, to contrast with the filled background
     renderer.drawText(UI_10_FONT_ID, textX, textY, label, selectedIndex != i);
+  }
+}
+
+void BaseTheme::drawRtlButtonMenu(GfxRenderer& renderer, const Rect rect,
+                                  const std::span<const std::string_view> labels, const int selectedIndex,
+                                  const int fontId) const {
+  const auto& metrics = UITheme::getInstance().getMetrics();
+  for (std::size_t i = 0; i < labels.size(); ++i) {
+    const int y = rect.y + static_cast<int>(i) * (metrics.menuRowHeight + metrics.menuSpacing);
+    const bool selected = static_cast<int>(i) == selectedIndex;
+    const int x = rect.x + metrics.contentSidePadding;
+    const int width = rect.width - metrics.contentSidePadding * 2;
+    if (selected) {
+      renderer.fillRect(x, y, width, metrics.menuRowHeight);
+    } else {
+      renderer.drawRect(x, y, width, metrics.menuRowHeight);
+    }
+
+    char label[96];
+    const int length = static_cast<int>(std::min(labels[i].size(), sizeof(label) - 1));
+    std::memcpy(label, labels[i].data(), static_cast<std::size_t>(length));
+    label[length] = '\0';
+    const int textWidth = renderer.getTextWidth(fontId, label, EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
+    const int textY = y + (metrics.menuRowHeight - renderer.getLineHeight(fontId)) / 2;
+    renderer.drawText(fontId, x + width - metrics.contentSidePadding - textWidth, textY, label, !selected,
+                      EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
   }
 }
 

@@ -4,6 +4,7 @@
 #include <HebrewDate.h>
 #include <PrayerBlockId.h>
 #include <PrayerContext.h>
+#include <SiddurMenuState.h>
 
 #include <cstddef>
 #include <string>
@@ -12,9 +13,8 @@
 #include "activities/Activity.h"
 
 class SiddurActivity final : public Activity {
-  enum class View { Menu, Shaharit };
-
-  View view = View::Menu;
+  static constexpr std::size_t kMaximumMenuRows = 10;
+  SiddurMenu::State menuState{1};
   SiddurEngine::PrayerContext prayerContext;
   std::vector<SiddurEngine::PrayerBlockId> composedPrayer;
   std::size_t prayerIndex = 0;
@@ -35,6 +35,7 @@ class SiddurActivity final : public Activity {
   void resetTextPage();
   void showPreviousPrayer();
   void showNextPrayer();
+  [[nodiscard]] std::size_t menuRowCapacity() const;
 
  public:
   explicit SiddurActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)

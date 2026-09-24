@@ -8,6 +8,7 @@ add_executable(siddur_engine_tests
   LiturgicalRulesTest.cpp
   StaticNavigationTest.cpp
   DynamicPrayerNavigationTest.cpp
+  SiddurMenuStateTest.cpp
 )
 
 target_include_directories(siddur_engine_tests PRIVATE
