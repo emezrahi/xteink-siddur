@@ -1,0 +1,54 @@
+name: Restore original X3 Siddur commit
+on:
+  push:
+    branches:
+      - recovery/import-70c867c2
+    paths:
+      - .github/workflows/restore-70c867c2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  recover-original-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out recovery staging branch with complete history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Recreate and verify original exact commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          TREE="0af931605e6d2f1a14e74c124fb5de32cf43f70f"
+          PARENT="4233a3d3cf5076d3aef1511abdc0f6ca27117b3b"
+          EXPECTED="70c867c2d9dd04b62bea69104f4fa00a93af95da"
+          BRANCH="recovery/x3-siddur-70c867c2"
+
+          git cat-file -e "${TREE}^{tree}"
+          git cat-file -e "${PARENT}^{commit}"
+          ACTUAL="$(GIT_AUTHOR_NAME=Codex \
+            GIT_AUTHOR_EMAIL=codex@openai.com \
+            GIT_AUTHOR_DATE='2026-09-20T17:24:23-05:00' \
+            GIT_COMMITTER_NAME=Codex \
+            GIT_COMMITTER_EMAIL=codex@openai.com \
+            GIT_COMMITTER_DATE='2026-09-20T17:24:23-05:00' \
+            git -c commit.gpgsign=false commit-tree "${TREE}" -p "${PARENT}" -m 'feat: add date-aware zmanim prayer engine')"
+
+          if [ "${ACTUAL}" != "${EXPECTED}" ]; then
+            echo "Exact commit mismatch: ${ACTUAL} != ${EXPECTED}" >&2
+            exit 1
+          fi
+          EXISTING="$(git ls-remote --heads origin "refs/heads/${BRANCH}" | awk '{print $1}')"
+          if [ -n "${EXISTING}" ]; then
+            [ "${EXISTING}" = "${EXPECTED}" ] || { echo "Recovery branch already exists at a different commit" >&2; exit 1; }
+            echo "Recovery branch already matches original commit."
+          else
+            git push origin "${EXPECTED}:refs/heads/${BRANCH}"
+          fi
+          REMOTE="$(git ls-remote --heads origin "refs/heads/${BRANCH}" | awk '{print $1}')"
+          [ "${REMOTE}" = "${EXPECTED}" ] || { echo "Remote verification failed" >&2; exit 1; }
+          echo "Verified: ${BRANCH} -> ${REMOTE}"
