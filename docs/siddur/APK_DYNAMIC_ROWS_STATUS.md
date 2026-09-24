@@ -1,25 +1,40 @@
 # Smart Siddur dynamic prayer rows: verification status
 
-The public repository currently verifies only the static XML navigation recorded in
-`APK_STATIC_UI_FIXTURE.json`. It does not contain the private Smart Siddur base or split APKs,
-and this implementation did not inspect or decompile them.
+The public repository verifies the static XML navigation recorded in
+`APK_STATIC_UI_FIXTURE.json`; this branch also provides a **generic, synthetic-tested**
+navigator that accepts caller-supplied generated prayer rows and `addToMenu` flags.
+Neither part proves the runtime prayer-section list of the Android application.
+
+## Static APK evidence recovered privately
+
+The owner's exact Smart Siddur 7.5.286 base APK was inspected for title-setter
+call sites within six Shaharit generators. The resulting **candidate inventory** is
+recorded in `APK_SHACHARIT_TITLE_SETTERS.md`. It is linear bytecode evidence:
+branch-dependent calls may never occur together; neither emitted order nor
+`getAddToMenu` values follow from their offsets.
+
+The original Android APK, bundled fonts, proprietary text and decompiled code
+must **not** be committed to the public repository.
 
 ## Required evidence for the next audit
 
-An authorized auditor with lawful access to the exact APK identified in `APK_PARITY_AUDIT.md`
-must capture the generated `PrayerTextItem` sequence for representative dates and every nusach,
-prayer mode, gender setting, Israel/diaspora setting, and applicable special-day option. Each
-capture must include item ID, localized title, order, `getAddToMenu`, `getExpand`, and the
-conditions that caused the row to be included or omitted.
+An authorized auditor with lawful access to the exact APK in
+`APK_PARITY_AUDIT.md` should trace `PrayerTextItem` creation and its
+`getTitle`, `getAddToMenu`, `getExpand`, and ID values. Capture the **actual
+generated sequence** for representative dates under each of the four nusachim,
+plus prayer modes and relevant gender, location, Israel/diaspora, holiday,
+mourning-house and no-Tahanun settings. For each capture record a reproducible
+input context and row-level output fixture, with no copyrighted prayer body or
+APK asset. Cross-check with Android UI screenshots or instrumented runtime
+outputs when legally and technically feasible.
 
 ## Explicit unknowns
 
-- The runtime order and visibility of generated prayer rows.
+- Runtime order and visibility of generated prayer rows; exact contents headings.
 - Conditional `getAddToMenu` and initial `getExpand` values.
 - Per-nusach prayer-body selection and completeness.
-- Date, location, mode, gender, and Israel/diaspora effects on those rows.
-- Whether Android reorders or hides any static XML menu entry at runtime.
+- Date, location, mode, gender and Israel/diaspora effects.
+- Whether Android reorders or hides static XML menu entries at runtime.
 
-Resource identifiers and the unfinished X3 prototype are not sufficient evidence for any of
-these facts. No dynamic section list should be added to the verified static model until the
-audit produces a reviewable fixture.
+The new dynamic-navigation model contains **no guessed prayer sections**.
+It will consume verified rows only when a separate APK parity fixture exists.
