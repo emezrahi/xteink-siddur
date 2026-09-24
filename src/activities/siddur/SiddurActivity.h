@@ -1,5 +1,6 @@
 #pragma once
 
+#include <CivilDateTime.h>
 #include <HebrewDate.h>
 #include <PrayerBlockId.h>
 #include <PrayerContext.h>
