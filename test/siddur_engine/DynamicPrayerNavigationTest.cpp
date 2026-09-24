@@ -85,9 +85,8 @@ TEST(SiddurDynamicPrayerNavigation, DifferentInputsDetermineDifferentMenus) {
 
 TEST(SiddurDynamicPrayerNavigation, DiscretePageCapacitiesAndEdgeClamps) {
   constexpr std::array rows = {
-      Nav::PrayerRow{"0", "First", true}, Nav::PrayerRow{"1", "Second", true},
-      Nav::PrayerRow{"2", "Third", true}, Nav::PrayerRow{"3", "Fourth", true},
-      Nav::PrayerRow{"4", "Fifth", true}, Nav::PrayerRow{"5", "Sixth", true},
+      Nav::PrayerRow{"0", "First", true},   Nav::PrayerRow{"1", "Second", true}, Nav::PrayerRow{"2", "Third", true},
+      Nav::PrayerRow{"3", "Fourth", true},  Nav::PrayerRow{"4", "Fifth", true},  Nav::PrayerRow{"5", "Sixth", true},
       Nav::PrayerRow{"6", "Seventh", true}, Nav::PrayerRow{"7", "Eighth", true},
   };
   for (const std::size_t capacity : {1U, 2U, 5U}) {
