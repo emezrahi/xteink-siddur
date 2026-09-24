@@ -8,9 +8,12 @@
 #include <PrayerContextResolver.h>
 #include <Zmanim.h>
 
+#include <array>
 #include <cstdio>
 #include <cstring>
+#include <span>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -28,6 +31,7 @@ constexpr int kPrayerStartY = 215;
 constexpr int kLineGap = 9;
 constexpr int kMaxPrayerLines = 11;
 constexpr int kPageNumberY = 705;
+constexpr int kMenuTop = 150;
 
 struct TextPage {
   std::vector<std::string> lines;
@@ -179,12 +183,20 @@ std::size_t previousPageOffset(GfxRenderer& renderer, const char* text, const st
 
 void SiddurActivity::onEnter() {
   Activity::onEnter();
-  view = View::Menu;
+  menuState = SiddurMenu::State(menuRowCapacity());
   prayerIndex = 0;
   resetTextPage();
   refreshCalendarPreview();
   cleanRefreshPending = true;
   requestUpdate();
+}
+
+std::size_t SiddurActivity::menuRowCapacity() const {
+  const auto& metrics = UITheme::getInstance().getMetrics();
+  const int available = renderer.getScreenHeight() - kMenuTop - metrics.buttonHintsHeight - metrics.verticalSpacing;
+  const int step = metrics.menuRowHeight + metrics.menuSpacing;
+  if (available <= 0 || step <= 0) return 0;
+  return std::min(kMaximumMenuRows, static_cast<std::size_t>(available / step));
 }
 
 void SiddurActivity::refreshCalendarPreview() {
@@ -242,9 +254,11 @@ void SiddurActivity::openShaharit() {
   }
 
   composedPrayer = SiddurEngine::Composer::compose(prayerContext);
-  if (composedPrayer.empty()) return;
+  if (composedPrayer.empty()) {
+    menuState.back();
+    return;
+  }
 
-  view = View::Shaharit;
   prayerIndex = 0;
   resetTextPage();
   cleanRefreshPending = true;
@@ -295,20 +309,36 @@ void SiddurActivity::showNextPrayer() {
 }
 
 void SiddurActivity::loop() {
-  if (view == View::Menu) {
+  if (menuState.screen() != SiddurMenu::Screen::Reading) {
     if (mappedInput.wasReleased(MappedInputManager::Button::Back)) {
-      finish();
+      if (!menuState.back()) finish();
+      cleanRefreshPending = true;
+      requestUpdate();
       return;
     }
 
     if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
-      openShaharit();
+      menuState.choose();
+      if (menuState.screen() == SiddurMenu::Screen::Reading) openShaharit();
+      cleanRefreshPending = true;
+      requestUpdate();
+      return;
+    }
+    if (mappedInput.wasReleased(MappedInputManager::Button::NavPrevious)) {
+      menuState.previous();
+      requestUpdate();
+      return;
+    }
+    if (mappedInput.wasReleased(MappedInputManager::Button::NavNext)) {
+      menuState.next();
+      requestUpdate();
+      return;
     }
     return;
   }
 
   if (mappedInput.wasReleased(MappedInputManager::Button::Back)) {
-    view = View::Menu;
+    menuState.back();
     cleanRefreshPending = true;
     requestUpdate();
     return;
@@ -327,19 +357,63 @@ void SiddurActivity::loop() {
 void SiddurActivity::render(RenderLock&&) {
   renderer.clearScreen();
 
-  if (view == View::Menu) {
-    renderer.drawCenteredText(UI_12_FONT_ID, kTitleY, "SIDDUR", true, EpdFontFamily::BOLD);
+  if (menuState.screen() != SiddurMenu::Screen::Reading) {
+    GUI.drawHeader(renderer, Rect{0, 0, renderer.getScreenWidth(), 50}, tr(STR_SIDDUR));
     renderer.drawCenteredText(UI_10_FONT_ID, 90, localDateTimePreview.c_str());
 
     if (!hebrewDatePreview.empty()) {
       renderer.drawCenteredText(UI_10_FONT_ID, 115, hebrewDatePreview.c_str());
     }
 
-    GUI.drawButtonMenu(
-        renderer, Rect{0, 150, renderer.getScreenWidth(), 220}, 1, 0, [](int) { return std::string("Shaharit"); },
-        [](int) { return UIIcon::Book; });
+    std::array<std::string_view, kMaximumMenuRows> rows{};
+    std::size_t rowCount = 0;
+    std::size_t selectedOffset = 0;
+    if (menuState.screen() == SiddurMenu::Screen::Navigation) {
+      const auto& navigation = menuState.menu();
+      const auto page = navigation.selection().page();
+      const auto selected = navigation.selection().selected();
+      if (page && selected) {
+        selectedOffset = *selected - page->first;
+        if (navigation.level() == SiddurStaticNavigation::NavigationSelection::Level::Categories) {
+          for (std::size_t i = page->first; i < page->pastLast; ++i) {
+            rows[rowCount++] = SiddurStaticNavigation::categories()[i].entry.hebrew;
+          }
+        } else {
+          const auto items = SiddurStaticNavigation::categories()[navigation.categoryIndex()].items();
+          for (std::size_t i = page->first; i < page->pastLast; ++i) rows[rowCount++] = items[i].hebrew;
+        }
+      }
+    } else if (menuState.screen() == SiddurMenu::Screen::Nusach) {
+      const auto page = menuState.nusachMenu().page();
+      const auto selected = menuState.nusachMenu().selected();
+      if (page && selected) {
+        selectedOffset = *selected - page->first;
+        for (std::size_t i = page->first; i < page->pastLast; ++i) {
+          rows[rowCount++] = SiddurStaticNavigation::nusachChoices()[i].hebrew;
+        }
+      }
+    } else {
+      renderer.drawCenteredText(UI_12_FONT_ID, 230, tr(STR_SIDDUR_PREVIEW_ONLY), true, EpdFontFamily::BOLD);
+      renderer.drawCenteredText(UI_10_FONT_ID, 280, tr(STR_SIDDUR_NOT_AVAILABLE));
+      const auto preview = menuState.previewEntry();
+      if (preview) rows[rowCount++] = preview.value()->hebrew;
+    }
+    if (rowCount > 0) {
+      GUI.drawRtlButtonMenu(
+          renderer, Rect{0, kMenuTop, renderer.getScreenWidth(), renderer.getScreenHeight() - kMenuTop},
+          std::span<const std::string_view>(rows.data(), rowCount), static_cast<int>(selectedOffset),
+          SIDDUR_HEBREW_16_FONT_ID);
+    }
 
-    const auto labels = mappedInput.mapLabels("Back", "Select", "", "");
+    char pageLabel[24] = {};
+    const auto page = menuState.screen() == SiddurMenu::Screen::Nusach ? menuState.nusachMenu().page()
+                                                                       : menuState.menu().selection().page();
+    if (page) std::snprintf(pageLabel, sizeof(pageLabel), "%u-%u", static_cast<unsigned>(page->first + 1),
+                            static_cast<unsigned>(page->pastLast));
+    renderer.drawCenteredText(UI_10_FONT_ID,
+                              renderer.getScreenHeight() - UITheme::getInstance().getMetrics().buttonHintsHeight - 20,
+                              pageLabel);
+    const auto labels = mappedInput.mapLabels(tr(STR_BACK), tr(STR_SELECT), tr(STR_DIR_UP), tr(STR_DIR_DOWN));
     GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
   } else {
     const auto drawRtlLine = [this](const int fontId, const int y, const char* text) {
