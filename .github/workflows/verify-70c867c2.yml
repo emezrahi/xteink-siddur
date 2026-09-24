@@ -1,0 +1,67 @@
+name: Verify archived X3 Siddur firmware
+on:
+  push:
+    branches:
+      - recovery/import-70c867c2
+    paths:
+      - .github/workflows/verify-70c867c2.yml
+
+permissions:
+  contents: read
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: 70c867c2d9dd04b62bea69104f4fa00a93af95da
+          submodules: recursive
+      - name: Configure host tests
+        run: cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release
+      - name: Compile host tests
+        run: cmake --build build/test -j 2
+      - name: Run host tests
+        run: ctest --test-dir build/test --output-on-failure -j 2
+
+  x3-firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: 70c867c2d9dd04b62bea69104f4fa00a93af95da
+          submodules: recursive
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: latest
+          enable-cache: false
+      - name: Install pinned PlatformIO core and dependencies
+        run: |
+          set -euo pipefail
+          uv pip install --system -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
+          uv pip install --system -U "littlefs-python>=0.16.0" "fatfs-ng>=0.1.14" "pyyaml>=6.0.2" \
+            "rich-click>=1.8.6" "zopfli>=0.2.2" "intelhex>=2.3.0" "rich>=14.0.0" "urllib3<2" \
+            "cryptography>=45.0.3" "certifi>=2025.8.3" "ecdsa>=0.19.1" "bitstring>=4.3.1" \
+            "reedsolo>=1.5.3,<1.8" "esp-idf-size>=2.0.0" "esp-coredump>=1.14.0"
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: x3-recovery-pio-v2-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+          restore-keys: x3-recovery-pio-v2-${{ runner.os }}-
+      - name: Install platform packages and pin nested core
+        run: |
+          set -euo pipefail
+          pio pkg install -e default
+          uv pip install --python ~/.platformio/penv/bin/python "pioarduino==6.1.19"
+      - name: Build X3 firmware
+        run: pio run -e default
+      - name: Archive X3 firmware if build succeeds
+        uses: actions/upload-artifact@v6
+        with:
+          name: x3-siddur-70c867c2-firmware
+          path: .pio/build/default/firmware.bin
+          if-no-files-found: error
