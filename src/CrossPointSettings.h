@@ -224,6 +224,11 @@ class CrossPointSettings : public PersistableStore<CrossPointSettings> {
   // Set once an NTP sync succeeds. Used to skip re-syncing on every WiFi connect.
   // Resetting to 0 (e.g. via the web UI) forces a re-sync on next WiFi connect.
   uint8_t clockHasBeenSynced = 0;
+  // Siddur location in signed millionths of a degree. These are stored outside
+  // the uint8_t settings list and may be edited through settings.json.
+  int32_t siddurLatitudeE6 = 40650100;
+  int32_t siddurLongitudeE6 = -73949600;
+  uint8_t siddurDiaspora = 1;
   // Text rendering settings
   uint8_t extraParagraphSpacing = 1;
   uint8_t textAntiAliasing = 1;

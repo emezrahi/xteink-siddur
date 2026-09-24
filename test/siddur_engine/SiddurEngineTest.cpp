@@ -19,13 +19,13 @@ TEST(SiddurComposer, SundayShaharitUsesRegularTahanunAndNoTorahReading) {
 
   const auto blocks = SiddurEngine::Composer::compose(context);
 
-  ASSERT_EQ(blocks.size(), 20U);
+  ASSERT_EQ(blocks.size(), 22U);
   EXPECT_EQ(blocks.front(), SiddurEngine::PrayerBlockId::ModehAni);
   EXPECT_TRUE(contains(blocks, SiddurEngine::PrayerBlockId::ViduiRegular));
   EXPECT_FALSE(contains(blocks, SiddurEngine::PrayerBlockId::ViduiMondayThursday));
   EXPECT_FALSE(contains(blocks, SiddurEngine::PrayerBlockId::TorahReadingWeekday));
   EXPECT_TRUE(contains(blocks, SiddurEngine::PrayerBlockId::UvaLezionRegular));
-  EXPECT_EQ(blocks[17], SiddurEngine::PrayerBlockId::SongOfDaySunday);
+  EXPECT_EQ(blocks[19], SiddurEngine::PrayerBlockId::SongOfDaySunday);
   EXPECT_EQ(blocks.back(), SiddurEngine::PrayerBlockId::Aleinu);
 }
 
@@ -36,12 +36,12 @@ TEST(SiddurComposer, MondayShaharitAddsExtendedTahanunAndTorahReading) {
 
   const auto blocks = SiddurEngine::Composer::compose(context);
 
-  ASSERT_EQ(blocks.size(), 21U);
+  ASSERT_EQ(blocks.size(), 23U);
   EXPECT_TRUE(contains(blocks, SiddurEngine::PrayerBlockId::ViduiMondayThursday));
   EXPECT_TRUE(contains(blocks, SiddurEngine::PrayerBlockId::TorahReadingWeekday));
   EXPECT_TRUE(contains(blocks, SiddurEngine::PrayerBlockId::UvaLezionTorah));
   EXPECT_FALSE(contains(blocks, SiddurEngine::PrayerBlockId::UvaLezionRegular));
-  EXPECT_EQ(blocks[18], SiddurEngine::PrayerBlockId::SongOfDayMonday);
+  EXPECT_EQ(blocks[20], SiddurEngine::PrayerBlockId::SongOfDayMonday);
 }
 
 TEST(SiddurComposer, ThursdayUsesThursdaySongOfDay) {
@@ -51,8 +51,8 @@ TEST(SiddurComposer, ThursdayUsesThursdaySongOfDay) {
 
   const auto blocks = SiddurEngine::Composer::compose(context);
 
-  ASSERT_EQ(blocks.size(), 21U);
-  EXPECT_EQ(blocks[18], SiddurEngine::PrayerBlockId::SongOfDayThursday);
+  ASSERT_EQ(blocks.size(), 23U);
+  EXPECT_EQ(blocks[20], SiddurEngine::PrayerBlockId::SongOfDayThursday);
 }
 
 TEST(SiddurComposer, FridayUsesFridaySongOfDay) {
@@ -62,8 +62,8 @@ TEST(SiddurComposer, FridayUsesFridaySongOfDay) {
 
   const auto blocks = SiddurEngine::Composer::compose(context);
 
-  ASSERT_EQ(blocks.size(), 20U);
-  EXPECT_EQ(blocks[17], SiddurEngine::PrayerBlockId::SongOfDayFriday);
+  ASSERT_EQ(blocks.size(), 22U);
+  EXPECT_EQ(blocks[19], SiddurEngine::PrayerBlockId::SongOfDayFriday);
 }
 
 TEST(SiddurComposer, ShabbatIsNotPresentedAsWeekdayShaharit) {
@@ -98,15 +98,19 @@ TEST(SiddurComposer, RoshHodeshAmidahInsertsYaalehVeyavoInsideRetzeh) {
   EXPECT_EQ(blocks[3], SiddurEngine::PrayerBlockId::Modim);
 }
 
-TEST(SiddurComposer, UnsupportedServicesComposeToEmptyUntilImplemented) {
+TEST(SiddurComposer, MinhaArvitAndMussafComposeConditionally) {
   SiddurEngine::PrayerContext context;
 
   context.service = SiddurEngine::PrayerService::Minha;
-  EXPECT_TRUE(SiddurEngine::Composer::compose(context).empty());
+  EXPECT_TRUE(contains(SiddurEngine::Composer::compose(context), SiddurEngine::PrayerBlockId::MinhaOpening));
 
   context.service = SiddurEngine::PrayerService::Arvit;
-  EXPECT_TRUE(SiddurEngine::Composer::compose(context).empty());
+  EXPECT_TRUE(contains(SiddurEngine::Composer::compose(context), SiddurEngine::PrayerBlockId::ArvitShemaAndBlessings));
 
   context.service = SiddurEngine::PrayerService::Musaf;
   EXPECT_TRUE(SiddurEngine::Composer::compose(context).empty());
+
+  context.sayMussaf = true;
+  context.isRoshHodesh = true;
+  EXPECT_EQ(SiddurEngine::Composer::compose(context).front(), SiddurEngine::PrayerBlockId::MussafRoshHodesh);
 }
