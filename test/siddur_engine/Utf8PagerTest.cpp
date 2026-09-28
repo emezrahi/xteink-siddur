@@ -97,3 +97,39 @@ TEST(Utf8Pager, ParagraphBreaksStayInsideAllocatedLines) {
   }
   EXPECT_EQ(removeSpaces(rebuilt), removeSpaces(text));
 }
+
+
+TEST(Utf8Pager, HebrewHeadingOnlyOnFirstPageWithExactReversePaging) {
+  // The first page reserves room for a Hebrew title, later pages do not.
+  constexpr int firstBodyTop = 138;
+  constexpr int nextBodyTop = 91;
+  constexpr int bodyBottom = 696;
+  constexpr int glyphHeight = 38;
+  constexpr int lineAdvance = 51;
+  const int firstLines = SiddurEngine::PageGeometry::visibleLines(firstBodyTop, bodyBottom, glyphHeight, lineAdvance);
+  const int nextLines = SiddurEngine::PageGeometry::visibleLines(nextBodyTop, bodyBottom, glyphHeight, lineAdvance);
+  ASSERT_GT(nextLines, firstLines);
+  std::string text;
+  for (int i = 0; i < 120; ++i) text += "שְׁמַע יִשְׂרָאֵל אַהֲבָה ";
+  std::vector<std::size_t> starts{0};
+  std::string rebuilt;
+  for (int pageNo = 0; pageNo < 100; ++pageNo) {
+    const auto page = SiddurEngine::Utf8Pager::paginate(text, starts.back(), 170,
+                                                        pageNo == 0 ? firstLines : nextLines, codepointWidth);
+    ASSERT_FALSE(page.lines.empty());
+    for (const auto& line : page.lines) rebuilt += line;
+    if (!page.hasNext) break;
+    ASSERT_GT(page.nextOffset, starts.back());
+    starts.push_back(page.nextOffset);
+  }
+  EXPECT_EQ(removeSpaces(rebuilt), removeSpaces(text));
+  ASSERT_GT(starts.size(), 2U);
+  for (std::size_t i = 1; i < starts.size(); ++i) {
+    EXPECT_EQ(SiddurEngine::Utf8Pager::previousOffsetVariable(text, starts[i], 170,
+               firstLines, nextLines, codepointWidth), starts[i - 1]);
+  }
+  const auto last = SiddurEngine::Utf8Pager::lastPageVariable(text, 170,
+                                                             firstLines, nextLines, codepointWidth);
+  EXPECT_EQ(last.first, starts.back());
+  EXPECT_EQ(last.second, starts.size() - 1);
+}
