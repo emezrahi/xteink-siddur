@@ -25,6 +25,7 @@ constexpr int kHeaderTop = 15;
 constexpr int kEnglishTitleTop = 49;
 constexpr int kHebrewTitleTop = 86;
 constexpr int kBodyTop = 138;
+constexpr int kContinuationBodyTop = 91; // Reclaim the Hebrew title band on continuation pages.
 constexpr int kReaderGap = 7;
 constexpr int kMenuTop = 122;
 constexpr int kMenuRowGap = 6;
@@ -37,10 +38,10 @@ struct ReaderGeometry {
   int textWidth;
 };
 
-ReaderGeometry readerGeometry(GfxRenderer& renderer) {
+ReaderGeometry readerGeometry(GfxRenderer& renderer, const bool firstPage) {
   const auto safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
   const int labelTop = safe.y + safe.height - renderer.getTextHeight(UI_10_FONT_ID) - 16;
-  const int bodyTop = safe.y + kBodyTop;
+  const int bodyTop = safe.y + (firstPage ? kBodyTop : kContinuationBodyTop);
   const int glyphHeight = renderer.getTextHeight(SIDDUR_HEBREW_16_FONT_ID);
   const int advance = std::max(renderer.getLineHeight(SIDDUR_HEBREW_16_FONT_ID), glyphHeight) + kReaderGap;
   const int bodyBottom = labelTop - 14;
@@ -157,20 +158,24 @@ void SiddurActivity::openSelectedChapter() {
 
 void SiddurActivity::showPreviousPage() {
   if (chapters.empty()) return;
-  const auto geo = readerGeometry(renderer);
+  // A chapter's first page includes the Hebrew title; continuation pages
+  // have a larger text region. Previous/last navigation must replay both.
+  const auto firstGeo = readerGeometry(renderer, true);
+  const auto nextGeo = readerGeometry(renderer, false);
   auto measure = [this](const char* text) {
     return renderer.getTextWidth(SIDDUR_HEBREW_16_FONT_ID, text, EpdFontFamily::REGULAR,
                                  BidiUtils::BidiBaseDir::RTL);
   };
 
   if (textOffset > 0) {
-    textOffset = SiddurEngine::Utf8Pager::previousOffset(chapters[chapterIndex].text, textOffset,
-                                                        geo.textWidth, geo.lineCount, measure);
+    textOffset = SiddurEngine::Utf8Pager::previousOffsetVariable(chapters[chapterIndex].text, textOffset,
+                                                                  firstGeo.textWidth, firstGeo.lineCount,
+                                                                  nextGeo.lineCount, measure);
     if (textPageIndex > 0) --textPageIndex;
   } else if (chapterIndex > 0) {
     --chapterIndex;
-    const auto last = SiddurEngine::Utf8Pager::lastPage(chapters[chapterIndex].text, geo.textWidth, geo.lineCount,
-                                                       measure);
+    const auto last = SiddurEngine::Utf8Pager::lastPageVariable(chapters[chapterIndex].text, firstGeo.textWidth,
+                                                                 firstGeo.lineCount, nextGeo.lineCount, measure);
     resetTextPage();
     textOffset = last.first;
     textPageIndex = last.second;
@@ -300,9 +305,10 @@ void SiddurActivity::render(RenderLock&&) {
     const std::string english = renderer.truncatedText(UI_12_FONT_ID, chapter.englishTitle,
                                                        screenWidth - kSideMargin * 2, EpdFontFamily::BOLD);
     renderer.drawCenteredText(UI_12_FONT_ID, safe.y + kEnglishTitleTop, english.c_str(), true, EpdFontFamily::BOLD);
-    drawRtl(safe.y + kHebrewTitleTop, chapter.hebrewTitle);
+    // The Hebrew heading is shown once when opening a chapter, not on every page.
+    if (textPageIndex == 0) drawRtl(safe.y + kHebrewTitleTop, chapter.hebrewTitle);
 
-    const auto geo = readerGeometry(renderer);
+    const auto geo = readerGeometry(renderer, textPageIndex == 0);
     const auto measure = [this](const char* text) {
       return renderer.getTextWidth(SIDDUR_HEBREW_16_FONT_ID, text, EpdFontFamily::REGULAR,
                                    BidiUtils::BidiBaseDir::RTL);
