@@ -143,6 +143,39 @@ class Utf8Pager {
     return page;
   }
 
+  // Only the opening page reserves space for the Hebrew chapter heading.
+  // All page turns must replay the corresponding line budgets or text will
+  // repeat or disappear when moving back through a long prayer.
+  template <typename Measure>
+  static std::pair<std::size_t, std::size_t> lastPageVariable(const std::string_view text, const int maxWidth,
+                                                              const int firstPageLines, const int followingPageLines,
+                                                              Measure&& measure) {
+    std::size_t offset = 0;
+    std::size_t index = 0;
+    while (true) {
+      const int lines = index == 0 ? firstPageLines : followingPageLines;
+      const auto page = paginate(text, offset, maxWidth, lines, measure);
+      if (!page.hasNext || page.nextOffset <= offset) return {offset, index};
+      offset = page.nextOffset;
+      ++index;
+    }
+  }
+
+  template <typename Measure>
+  static std::size_t previousOffsetVariable(const std::string_view text, const std::size_t currentOffset,
+                                            const int maxWidth, const int firstPageLines,
+                                            const int followingPageLines, Measure&& measure) {
+    std::size_t offset = 0;
+    std::size_t index = 0;
+    while (offset < currentOffset) {
+      const auto page = paginate(text, offset, maxWidth, index == 0 ? firstPageLines : followingPageLines, measure);
+      if (!page.hasNext || page.nextOffset >= currentOffset || page.nextOffset <= offset) return offset;
+      offset = page.nextOffset;
+      ++index;
+    }
+    return 0;
+  }
+
   template <typename Measure>
   static std::pair<std::size_t, std::size_t> lastPage(const std::string_view text, const int maxWidth,
                                                       const int maxLines, Measure&& measure) {
