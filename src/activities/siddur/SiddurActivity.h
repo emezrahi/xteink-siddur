@@ -1,6 +1,7 @@
 #pragma once
 
-#include <HebrewDate.h>
+#include <Chapter.h>
+#include <CivilDateTime.h>
 #include <PrayerBlockId.h>
 #include <PrayerContext.h>
 
@@ -11,12 +12,12 @@
 #include "activities/Activity.h"
 
 class SiddurActivity final : public Activity {
-  enum class View { Menu, Shaharit };
+  enum class View { Chapters, Reading };
 
-  View view = View::Menu;
+  View view = View::Chapters;
   SiddurEngine::PrayerContext prayerContext;
-  std::vector<SiddurEngine::PrayerBlockId> composedPrayer;
-  std::size_t prayerIndex = 0;
+  std::vector<SiddurContent::Chapter> chapters;
+  std::size_t chapterIndex = 0;
   std::size_t textOffset = 0;
   std::size_t nextTextOffset = 0;
   std::size_t textPageIndex = 0;
@@ -30,10 +31,11 @@ class SiddurActivity final : public Activity {
   std::string hebrewDatePreview;
 
   void refreshCalendarPreview();
-  void openShaharit();
+  void refreshChapters();
+  void openSelectedChapter();
   void resetTextPage();
-  void showPreviousPrayer();
-  void showNextPrayer();
+  void showPreviousPage();
+  void showNextPage();
 
  public:
   explicit SiddurActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)

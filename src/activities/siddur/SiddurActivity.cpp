@@ -6,183 +6,86 @@
 #include <HebrewCalendar.h>
 #include <LocalClock.h>
 #include <PrayerContextResolver.h>
+#include <Utf8Pager.h>
 #include <Zmanim.h>
 
+#include <algorithm>
 #include <cstdio>
-#include <cstring>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "CrossPointSettings.h"
 #include "components/UITheme.h"
-#include "content/EdotWeekdayShaharit.h"
+#include "content/EdotChapters.h"
 #include "fontIds.h"
 
 namespace {
 constexpr int kSideMargin = 24;
-constexpr int kTitleY = 46;
-constexpr int kSectionTitleY = 105;
-constexpr int kPrayerTitleY = 155;
-constexpr int kPrayerStartY = 215;
-constexpr int kLineGap = 9;
-constexpr int kMaxPrayerLines = 11;
-constexpr int kPageNumberY = 705;
+constexpr int kHeaderTop = 15;
+constexpr int kEnglishTitleTop = 49;
+constexpr int kHebrewTitleTop = 86;
+constexpr int kBodyTop = 138;
+constexpr int kReaderGap = 7;
+constexpr int kMenuTop = 122;
+constexpr int kMenuRowGap = 6;
 
-struct TextPage {
-  std::vector<std::string> lines;
-  std::size_t nextOffset = 0;
-  bool hasNext = false;
+struct ReaderGeometry {
+  int bodyTop;
+  int pageLabelTop;
+  int lineAdvance;
+  int lineCount;
+  int textWidth;
 };
+
+ReaderGeometry readerGeometry(GfxRenderer& renderer) {
+  const auto safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
+  const int labelTop = safe.y + safe.height - renderer.getTextHeight(UI_10_FONT_ID) - 16;
+  const int bodyTop = safe.y + kBodyTop;
+  const int glyphHeight = renderer.getTextHeight(SIDDUR_HEBREW_16_FONT_ID);
+  const int advance = std::max(renderer.getLineHeight(SIDDUR_HEBREW_16_FONT_ID), glyphHeight) + kReaderGap;
+  const int bodyBottom = labelTop - 14;
+  return {bodyTop, labelTop, advance,
+          SiddurEngine::PageGeometry::visibleLines(bodyTop, bodyBottom, glyphHeight, advance),
+          renderer.getScreenWidth() - kSideMargin * 2};
+}
 
 const char* hebrewMonthName(const SiddurEngine::HebrewMonth month) {
   switch (month) {
-    case SiddurEngine::HebrewMonth::Nisan:
-      return "Nisan";
-    case SiddurEngine::HebrewMonth::Iyar:
-      return "Iyar";
-    case SiddurEngine::HebrewMonth::Sivan:
-      return "Sivan";
-    case SiddurEngine::HebrewMonth::Tammuz:
-      return "Tammuz";
-    case SiddurEngine::HebrewMonth::Av:
-      return "Av";
-    case SiddurEngine::HebrewMonth::Elul:
-      return "Elul";
-    case SiddurEngine::HebrewMonth::Tishrei:
-      return "Tishrei";
-    case SiddurEngine::HebrewMonth::Cheshvan:
-      return "Cheshvan";
-    case SiddurEngine::HebrewMonth::Kislev:
-      return "Kislev";
-    case SiddurEngine::HebrewMonth::Tevet:
-      return "Tevet";
-    case SiddurEngine::HebrewMonth::Shevat:
-      return "Shevat";
-    case SiddurEngine::HebrewMonth::Adar:
-      return "Adar";
-    case SiddurEngine::HebrewMonth::AdarII:
-      return "Adar II";
+    case SiddurEngine::HebrewMonth::Nisan: return "Nisan";
+    case SiddurEngine::HebrewMonth::Iyar: return "Iyar";
+    case SiddurEngine::HebrewMonth::Sivan: return "Sivan";
+    case SiddurEngine::HebrewMonth::Tammuz: return "Tammuz";
+    case SiddurEngine::HebrewMonth::Av: return "Av";
+    case SiddurEngine::HebrewMonth::Elul: return "Elul";
+    case SiddurEngine::HebrewMonth::Tishrei: return "Tishrei";
+    case SiddurEngine::HebrewMonth::Cheshvan: return "Cheshvan";
+    case SiddurEngine::HebrewMonth::Kislev: return "Kislev";
+    case SiddurEngine::HebrewMonth::Tevet: return "Tevet";
+    case SiddurEngine::HebrewMonth::Shevat: return "Shevat";
+    case SiddurEngine::HebrewMonth::Adar: return "Adar";
+    case SiddurEngine::HebrewMonth::AdarII: return "Adar II";
   }
   return "";
 }
 
 const char* serviceName(const SiddurEngine::PrayerService service) {
   switch (service) {
-    case SiddurEngine::PrayerService::Shaharit:
-      return "Shaharit";
-    case SiddurEngine::PrayerService::Minha:
-      return "Minha";
-    case SiddurEngine::PrayerService::Arvit:
-      return "Arvit";
-    case SiddurEngine::PrayerService::Musaf:
-      return "Mussaf";
+    case SiddurEngine::PrayerService::Shaharit: return "Shaharit";
+    case SiddurEngine::PrayerService::Minha: return "Minha";
+    case SiddurEngine::PrayerService::Arvit: return "Arvit";
+    case SiddurEngine::PrayerService::Musaf: return "Mussaf";
   }
   return "";
 }
-
-TextPage layoutTextPage(GfxRenderer& renderer, const char* text, const std::size_t startOffset, const int maxWidth) {
-  TextPage page;
-  page.lines.reserve(kMaxPrayerLines);
-  if (text == nullptr || text[startOffset] == '\0') {
-    page.nextOffset = startOffset;
-    return page;
-  }
-
-  std::size_t pos = startOffset;
-  while (text[pos] == ' ' || text[pos] == '\n') ++pos;
-
-  std::string currentLine;
-  currentLine.reserve(192);
-
-  while (text[pos] != '\0' && static_cast<int>(page.lines.size()) < kMaxPrayerLines) {
-    if (text[pos] == '\n') {
-      if (!currentLine.empty()) {
-        page.lines.push_back(std::move(currentLine));
-        currentLine.clear();
-        currentLine.reserve(192);
-      } else {
-        page.lines.emplace_back();
-      }
-      ++pos;
-      continue;
-    }
-
-    while (text[pos] == ' ') ++pos;
-    if (text[pos] == '\0' || text[pos] == '\n') continue;
-
-    const std::size_t wordStart = pos;
-    while (text[pos] != '\0' && text[pos] != ' ' && text[pos] != '\n') ++pos;
-    std::string token(text + wordStart, pos - wordStart);
-    std::string candidate = currentLine.empty() ? token : currentLine + " " + token;
-
-    if (renderer.getTextWidth(SIDDUR_HEBREW_16_FONT_ID, candidate.c_str(), EpdFontFamily::REGULAR,
-                              BidiUtils::BidiBaseDir::RTL) <= maxWidth) {
-      currentLine = std::move(candidate);
-      continue;
-    }
-
-    if (!currentLine.empty()) {
-      page.lines.push_back(std::move(currentLine));
-      currentLine.clear();
-      currentLine.reserve(192);
-
-      if (static_cast<int>(page.lines.size()) >= kMaxPrayerLines) {
-        pos = wordStart;
-        break;
-      }
-    }
-
-    if (renderer.getTextWidth(SIDDUR_HEBREW_16_FONT_ID, token.c_str(), EpdFontFamily::REGULAR,
-                              BidiUtils::BidiBaseDir::RTL) <= maxWidth) {
-      currentLine = std::move(token);
-    } else {
-      page.lines.push_back(renderer.truncatedText(SIDDUR_HEBREW_16_FONT_ID, token.c_str(), maxWidth));
-      if (static_cast<int>(page.lines.size()) >= kMaxPrayerLines) break;
-    }
-  }
-
-  if (!currentLine.empty() && static_cast<int>(page.lines.size()) < kMaxPrayerLines) {
-    page.lines.push_back(std::move(currentLine));
-  }
-
-  while (text[pos] == ' ' || text[pos] == '\n') ++pos;
-  page.nextOffset = pos;
-  page.hasNext = text[pos] != '\0';
-  return page;
-}
-
-std::pair<std::size_t, std::size_t> lastPagePosition(GfxRenderer& renderer, const char* text, const int maxWidth) {
-  std::size_t offset = 0;
-  std::size_t pageIndex = 0;
-
-  while (true) {
-    const auto page = layoutTextPage(renderer, text, offset, maxWidth);
-    if (!page.hasNext || page.nextOffset <= offset) return {offset, pageIndex};
-    offset = page.nextOffset;
-    ++pageIndex;
-  }
-}
-
-std::size_t previousPageOffset(GfxRenderer& renderer, const char* text, const std::size_t currentOffset,
-                               const int maxWidth) {
-  if (currentOffset == 0) return 0;
-
-  std::size_t offset = 0;
-  while (true) {
-    const auto page = layoutTextPage(renderer, text, offset, maxWidth);
-    if (!page.hasNext || page.nextOffset >= currentOffset || page.nextOffset <= offset) return offset;
-    offset = page.nextOffset;
-  }
-}
-}  // namespace
+} // namespace
 
 void SiddurActivity::onEnter() {
   Activity::onEnter();
-  view = View::Menu;
-  prayerIndex = 0;
+  view = View::Chapters;
+  chapterIndex = 0;
   resetTextPage();
   refreshCalendarPreview();
+  refreshChapters();
   cleanRefreshPending = true;
   requestUpdate();
 }
@@ -198,9 +101,7 @@ void SiddurActivity::refreshCalendarPreview() {
 
   const SiddurEngine::CivilDateTime utcDateTime{
       {static_cast<int>(utc.year), static_cast<int>(utc.month), static_cast<int>(utc.day)},
-      static_cast<int>(utc.hour),
-      static_cast<int>(utc.minute),
-  };
+      static_cast<int>(utc.hour), static_cast<int>(utc.minute)};
   localDateTime = SiddurEngine::LocalClock::applyUtcOffset(utcDateTime, SETTINGS.clockUtcOffsetQ);
   localCivilDate = localDateTime.date;
   hasLocalCivilDate = true;
@@ -224,14 +125,7 @@ void SiddurActivity::refreshCalendarPreview() {
   hebrewDatePreview = hebrewBuffer;
 }
 
-void SiddurActivity::resetTextPage() {
-  textOffset = 0;
-  nextTextOffset = 0;
-  textPageIndex = 0;
-  hasNextTextPage = false;
-}
-
-void SiddurActivity::openShaharit() {
+void SiddurActivity::refreshChapters() {
   if (hasLocalCivilDate) {
     prayerContext = SiddurEngine::PrayerContextResolver::resolve(SiddurEngine::PrayerService::Shaharit, localCivilDate,
                                                                  afterSunset, SETTINGS.siddurDiaspora != 0)
@@ -240,144 +134,193 @@ void SiddurActivity::openShaharit() {
     prayerContext = {};
     prayerContext.service = SiddurEngine::PrayerService::Shaharit;
   }
+  // Do not offer liturgical placeholders. Chapters are populated ONLY from
+  // actual compiled CC0 text blocks that the date-aware composer selected.
+  chapters = SiddurContent::weekdayChapters(SiddurEngine::Composer::compose(prayerContext));
+  if (chapterIndex >= chapters.size()) chapterIndex = 0;
+}
 
-  composedPrayer = SiddurEngine::Composer::compose(prayerContext);
-  if (composedPrayer.empty()) return;
+void SiddurActivity::resetTextPage() {
+  textOffset = 0;
+  nextTextOffset = 0;
+  textPageIndex = 0;
+  hasNextTextPage = false;
+}
 
-  view = View::Shaharit;
-  prayerIndex = 0;
+void SiddurActivity::openSelectedChapter() {
+  if (chapters.empty() || chapterIndex >= chapters.size()) return;
+  view = View::Reading;
   resetTextPage();
   cleanRefreshPending = true;
   requestUpdate();
 }
 
-void SiddurActivity::showPreviousPrayer() {
-  if (composedPrayer.empty()) return;
+void SiddurActivity::showPreviousPage() {
+  if (chapters.empty()) return;
+  const auto geo = readerGeometry(renderer);
+  auto measure = [this](const char* text) {
+    return renderer.getTextWidth(SIDDUR_HEBREW_16_FONT_ID, text, EpdFontFamily::REGULAR,
+                                 BidiUtils::BidiBaseDir::RTL);
+  };
 
-  const int maxWidth = renderer.getScreenWidth() - 2 * kSideMargin;
-  const auto* block = SiddurContent::EdotWeekdayShaharit::findBlock(composedPrayer[prayerIndex]);
-
-  if (block != nullptr && textOffset > 0) {
-    textOffset = previousPageOffset(renderer, block->text, textOffset, maxWidth);
+  if (textOffset > 0) {
+    textOffset = SiddurEngine::Utf8Pager::previousOffset(chapters[chapterIndex].text, textOffset,
+                                                        geo.textWidth, geo.lineCount, measure);
     if (textPageIndex > 0) --textPageIndex;
-    requestUpdate();
-    return;
-  }
-
-  if (prayerIndex == 0) return;
-  --prayerIndex;
-
-  block = SiddurContent::EdotWeekdayShaharit::findBlock(composedPrayer[prayerIndex]);
-  if (block == nullptr) {
+  } else if (chapterIndex > 0) {
+    --chapterIndex;
+    const auto last = SiddurEngine::Utf8Pager::lastPage(chapters[chapterIndex].text, geo.textWidth, geo.lineCount,
+                                                       measure);
     resetTextPage();
-  } else {
-    const auto last = lastPagePosition(renderer, block->text, maxWidth);
     textOffset = last.first;
     textPageIndex = last.second;
-    nextTextOffset = textOffset;
-    hasNextTextPage = false;
   }
   requestUpdate();
 }
 
-void SiddurActivity::showNextPrayer() {
-  if (hasNextTextPage) {
+void SiddurActivity::showNextPage() {
+  if (chapters.empty()) return;
+  if (hasNextTextPage && nextTextOffset > textOffset) {
     textOffset = nextTextOffset;
     ++textPageIndex;
-    requestUpdate();
-    return;
+  } else if (chapterIndex + 1 < chapters.size()) {
+    ++chapterIndex;
+    resetTextPage();
   }
-
-  if (prayerIndex + 1 >= composedPrayer.size()) return;
-  ++prayerIndex;
-  resetTextPage();
   requestUpdate();
 }
 
 void SiddurActivity::loop() {
-  if (view == View::Menu) {
+  if (view == View::Chapters) {
     if (mappedInput.wasReleased(MappedInputManager::Button::Back)) {
       finish();
       return;
     }
-
+    if (chapters.empty()) return;
     if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
-      openShaharit();
+      openSelectedChapter();
+      return;
+    }
+    if (mappedInput.wasReleased(MappedInputManager::Button::NavPrevious)) {
+      if (chapterIndex > 0) --chapterIndex;
+      requestUpdate();
+      return;
+    }
+    if (mappedInput.wasReleased(MappedInputManager::Button::NavNext)) {
+      if (chapterIndex + 1 < chapters.size()) ++chapterIndex;
+      requestUpdate();
+      return;
+    }
+    int tapX = 0;
+    int tapY = 0;
+    if (mappedInput.wasScreenTapped(tapX, tapY)) {
+      const auto safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
+      const int rowHeight = std::max(66, renderer.getLineHeight(UI_10_FONT_ID) * 2 + 12);
+      const int pitch = rowHeight + kMenuRowGap;
+      const int firstY = safe.y + kMenuTop;
+      const int visible = std::max(1, (safe.y + safe.height - 46 - firstY) / pitch);
+      const auto first = (chapterIndex / static_cast<std::size_t>(visible)) * static_cast<std::size_t>(visible);
+      if (tapX >= kSideMargin && tapX < renderer.getScreenWidth() - kSideMargin && tapY >= firstY) {
+        const int row = (tapY - firstY) / pitch;
+        const std::size_t index = first + static_cast<std::size_t>(row);
+        if (row >= 0 && row < visible && index < chapters.size() && (tapY - firstY) % pitch < rowHeight) {
+          chapterIndex = index;
+          openSelectedChapter();
+        }
+      }
     }
     return;
   }
 
-  if (mappedInput.wasReleased(MappedInputManager::Button::Back)) {
-    view = View::Menu;
+  if (mappedInput.wasReleased(MappedInputManager::Button::Back) ||
+      mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
+    view = View::Chapters;
     cleanRefreshPending = true;
     requestUpdate();
     return;
   }
-
   if (mappedInput.wasReleased(MappedInputManager::Button::NavPrevious)) {
-    showPreviousPrayer();
+    showPreviousPage();
     return;
   }
-
-  if (mappedInput.wasReleased(MappedInputManager::Button::NavNext)) {
-    showNextPrayer();
-  }
+  if (mappedInput.wasReleased(MappedInputManager::Button::NavNext)) showNextPage();
 }
 
 void SiddurActivity::render(RenderLock&&) {
   renderer.clearScreen();
+  const auto safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
+  const int screenWidth = renderer.getScreenWidth();
 
-  if (view == View::Menu) {
-    renderer.drawCenteredText(UI_12_FONT_ID, kTitleY, "SIDDUR", true, EpdFontFamily::BOLD);
-    renderer.drawCenteredText(UI_10_FONT_ID, 90, localDateTimePreview.c_str());
-
+  if (view == View::Chapters) {
+    renderer.drawCenteredText(UI_12_FONT_ID, safe.y + kHeaderTop, "SHAHARIT - CHAPTERS", true, EpdFontFamily::BOLD);
+    renderer.drawCenteredText(UI_10_FONT_ID, safe.y + 54, localDateTimePreview.c_str());
     if (!hebrewDatePreview.empty()) {
-      renderer.drawCenteredText(UI_10_FONT_ID, 115, hebrewDatePreview.c_str());
+      renderer.drawCenteredText(UI_10_FONT_ID, safe.y + 80, hebrewDatePreview.c_str());
     }
 
-    GUI.drawButtonMenu(
-        renderer, Rect{0, 150, renderer.getScreenWidth(), 220}, 1, 0, [](int) { return std::string("Shaharit"); },
-        [](int) { return UIIcon::Book; });
-
-    const auto labels = mappedInput.mapLabels("Back", "Select", "", "");
+    if (chapters.empty()) {
+      renderer.drawCenteredText(UI_12_FONT_ID, safe.y + 210, "No weekday chapters for this date");
+    } else {
+      const int rowHeight = std::max(66, renderer.getLineHeight(UI_10_FONT_ID) * 2 + 12);
+      const int rowPitch = rowHeight + kMenuRowGap;
+      const int firstY = safe.y + kMenuTop;
+      const int visible = std::max(1, (safe.y + safe.height - 46 - firstY) / rowPitch);
+      const std::size_t first = (chapterIndex / static_cast<std::size_t>(visible)) * static_cast<std::size_t>(visible);
+      for (int row = 0; row < visible && first + static_cast<std::size_t>(row) < chapters.size(); ++row) {
+        const std::size_t index = first + static_cast<std::size_t>(row);
+        const int y = firstY + rowPitch * row;
+        const bool selected = index == chapterIndex;
+        const int width = screenWidth - kSideMargin * 2;
+        renderer.fillRect(kSideMargin, y, width, rowHeight, selected);
+        renderer.drawRect(kSideMargin, y, width, rowHeight);
+        const auto lines = renderer.wrappedText(UI_10_FONT_ID, chapters[index].englishTitle, width - 28, 2);
+        const int lineAdvance = renderer.getLineHeight(UI_10_FONT_ID);
+        int textY = y + (rowHeight - static_cast<int>(lines.size()) * lineAdvance) / 2;
+        for (const auto& line : lines) {
+          renderer.drawText(UI_10_FONT_ID, kSideMargin + 14, textY, line.c_str(), !selected);
+          textY += lineAdvance;
+        }
+      }
+      char position[32];
+      std::snprintf(position, sizeof(position), "%u / %u", static_cast<unsigned>(chapterIndex + 1),
+                    static_cast<unsigned>(chapters.size()));
+      renderer.drawCenteredText(UI_10_FONT_ID, safe.y + safe.height - 33, position);
+    }
+    const auto labels = mappedInput.mapLabels("Back", "Open", "Up", "Down");
     GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
-  } else {
-    const auto drawRtlLine = [this](const int fontId, const int y, const char* text) {
-      const int width = renderer.getTextWidth(fontId, text, EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
-      const int x = renderer.getScreenWidth() - kSideMargin - width;
-      renderer.drawText(fontId, x, y, text, true, EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
+  } else if (!chapters.empty()) {
+    const auto& chapter = chapters[chapterIndex];
+    auto drawRtl = [this, screenWidth](const int y, const char* text) {
+      const int width = renderer.getTextWidth(SIDDUR_HEBREW_16_FONT_ID, text, EpdFontFamily::REGULAR,
+                                              BidiUtils::BidiBaseDir::RTL);
+      renderer.drawText(SIDDUR_HEBREW_16_FONT_ID, screenWidth - kSideMargin - width, y, text, true,
+                        EpdFontFamily::REGULAR, BidiUtils::BidiBaseDir::RTL);
     };
+    renderer.drawCenteredText(UI_10_FONT_ID, safe.y + kHeaderTop, "EDOT HAMIZRACH - SHAHARIT");
+    const std::string english = renderer.truncatedText(UI_12_FONT_ID, chapter.englishTitle,
+                                                       screenWidth - kSideMargin * 2, EpdFontFamily::BOLD);
+    renderer.drawCenteredText(UI_12_FONT_ID, safe.y + kEnglishTitleTop, english.c_str(), true, EpdFontFamily::BOLD);
+    drawRtl(safe.y + kHebrewTitleTop, chapter.hebrewTitle);
 
-    const auto* block = SiddurContent::EdotWeekdayShaharit::findBlock(composedPrayer[prayerIndex]);
-    if (block == nullptr) {
-      renderer.drawCenteredText(UI_12_FONT_ID, 250, "Missing prayer block");
-      renderer.displayBuffer(cleanRefreshPending ? HalDisplay::HALF_REFRESH : HalDisplay::FAST_REFRESH);
-      cleanRefreshPending = false;
-      return;
-    }
-
-    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kTitleY, SiddurContent::EdotWeekdayShaharit::kShaharitTitle);
-    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kSectionTitleY, block->sectionTitle);
-    drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, kPrayerTitleY, block->title);
-
-    const int maxWidth = renderer.getScreenWidth() - 2 * kSideMargin;
-    const auto page = layoutTextPage(renderer, block->text, textOffset, maxWidth);
+    const auto geo = readerGeometry(renderer);
+    const auto measure = [this](const char* text) {
+      return renderer.getTextWidth(SIDDUR_HEBREW_16_FONT_ID, text, EpdFontFamily::REGULAR,
+                                   BidiUtils::BidiBaseDir::RTL);
+    };
+    const auto page = SiddurEngine::Utf8Pager::paginate(chapter.text, textOffset, geo.textWidth, geo.lineCount,
+                                                       measure);
     nextTextOffset = page.nextOffset;
     hasNextTextPage = page.hasNext;
-
-    const int lineHeight = renderer.getLineHeight(SIDDUR_HEBREW_16_FONT_ID);
-    int y = kPrayerStartY;
+    int y = geo.bodyTop;
     for (const auto& line : page.lines) {
-      if (!line.empty()) drawRtlLine(SIDDUR_HEBREW_16_FONT_ID, y, line.c_str());
-      y += lineHeight + kLineGap;
+      if (!line.empty()) drawRtl(y, line.c_str());
+      y += geo.lineAdvance;
     }
-
-    char pageLabel[40];
-    std::snprintf(pageLabel, sizeof(pageLabel), "%u/%u  p%u", static_cast<unsigned>(prayerIndex + 1),
-                  static_cast<unsigned>(composedPrayer.size()), static_cast<unsigned>(textPageIndex + 1));
-    renderer.drawCenteredText(UI_10_FONT_ID, kPageNumberY, pageLabel);
-
-    const auto labels = mappedInput.mapLabels("Back", "", "Previous", "Next");
+    char pageLabel[48];
+    std::snprintf(pageLabel, sizeof(pageLabel), "%u / %u  page %u", static_cast<unsigned>(chapterIndex + 1),
+                  static_cast<unsigned>(chapters.size()), static_cast<unsigned>(textPageIndex + 1));
+    renderer.drawCenteredText(UI_10_FONT_ID, geo.pageLabelTop, pageLabel);
+    const auto labels = mappedInput.mapLabels("Back", "Chapters", "Previous", "Next");
     GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
   }
 
