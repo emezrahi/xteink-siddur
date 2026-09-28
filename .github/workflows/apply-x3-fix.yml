@@ -1,0 +1,52 @@
+name: Apply X3 Siddur chapter and pagination fix
+
+on:
+  push:
+    branches: [siddur/apk-chapters-pagination]
+    paths: [.github/workflows/apply-x3-fix.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Verify and apply archived patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import lzma
+          from pathlib import Path
+
+          parts = [Path(f".github/x3patch/part{i}.b64").read_text().strip() for i in range(1, 5)]
+          encoded = "".join(parts)
+          if len(encoded) != 13032:
+              raise SystemExit(f"Incomplete transfer: got {len(encoded)} characters")
+          raw = base64.b64decode(encoded, validate=True)
+          if hashlib.sha256(raw).hexdigest() != "4c927f9903e3f00e307a6a60b8041eb193cc0792ed050527ac884ad025dca64f":
+              raise SystemExit("Compressed patch checksum mismatch; refusing to apply")
+          patch = lzma.decompress(raw)
+          if hashlib.sha256(patch).hexdigest() != "aa391b1581ee74bf2cc98df2d73fdba885bdd825ef0c2dc9765a47545964da8e":
+              raise SystemExit("Decompressed patch checksum mismatch; refusing to apply")
+          Path("/tmp/x3-chapters.patch").write_bytes(patch)
+          print(f"Verified {len(patch)} patch bytes")
+          PY
+          git apply --check /tmp/x3-chapters.patch
+          git apply /tmp/x3-chapters.patch
+          git diff --check
+          git add lib/SiddurEngine/Chapter.h lib/SiddurEngine/Utf8Pager.h \
+            src/activities/siddur/SiddurActivity.cpp src/activities/siddur/SiddurActivity.h \
+            src/activities/siddur/content/EdotChapters.h \
+            test/siddur_engine/CMakeLists.txt \
+            test/siddur_engine/EdotChaptersTest.cpp test/siddur_engine/Utf8PagerTest.cpp
+          git -c user.name='X3 Siddur Fix' -c user.email='actions@users.noreply.github.com' \
+            commit -m 'fix(siddur): APK-style English chapter picker and safe UTF-8 pagination'
+          git push origin HEAD:refs/heads/siddur/apk-chapters-pagination
