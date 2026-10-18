@@ -151,7 +151,7 @@ def build_mishnah(entries: list[dict[str, Any]], root: Path, source_log: list[di
         if e.get("language") == "Hebrew"
         and e.get("versionTitle") == MISHNAH_VERSION
         and "Mishnah" in e.get("categories", [])
-        and str(e.get("title", "")).startswith("Mishnah ")
+        and (str(e.get("title", "")).startswith("Mishnah ") or e.get("title") == "Pirkei Avot")
     ]
     if len(selected) != 63:
         raise RuntimeError(f"Expected 63 Mishnah tractates in {MISHNAH_VERSION}, got {len(selected)}")
@@ -167,7 +167,7 @@ def build_mishnah(entries: list[dict[str, Any]], root: Path, source_log: list[di
         seder = mishnah_seder(entry)
         data = download_version(entry, source_log)
         chapters = data["text"]
-        tractate = entry["title"].removeprefix("Mishnah ")
+        tractate = "Avot" if entry["title"] == "Pirkei Avot" else entry["title"].removeprefix("Mishnah ")
         slug = safe_slug(tractate)
         seder_no = SEDER_ORDER.index(seder) + 1
         folder = root / "mishnah" / f"{seder_no:02d}-{seder.lower()}" / slug
