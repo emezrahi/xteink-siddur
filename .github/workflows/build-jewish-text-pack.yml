@@ -1,0 +1,55 @@
+name: Build X3 Jewish text pack
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - library/tehillim-mishnah-shnayim
+    paths:
+      - tools/jewish_texts/**
+      - .github/workflows/build-jewish-text-pack.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build-text-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Build licensed offline text pack
+        run: |
+          set -euo pipefail
+          python tools/jewish_texts/build_pack.py \
+            --output-dir build/jewish-texts \
+            --zip build/x3-jewish-texts.zip
+      - name: Validate pack shape
+        run: |
+          set -euo pipefail
+          test -f build/jewish-texts/SOURCES.json
+          test -f build/jewish-texts/tehillim/001.txt
+          test -f build/jewish-texts/tehillim/150.txt
+          test -f build/jewish-texts/mishnah/index.tsv
+          test -f build/jewish-texts/shnayim/index.tsv
+          test "$(find build/jewish-texts/tehillim -maxdepth 1 -name '*.txt' | wc -l)" -eq 150
+          test "$(wc -l < build/jewish-texts/shnayim/index.tsv)" -eq 54
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path("build/jewish-texts/SOURCES.json").read_text())
+          assert m["libraries"]["tehillim"]["chapters"] == 150
+          assert m["libraries"]["mishnah"]["tractates"] == 63
+          assert m["libraries"]["shnayimMikrah"]["parashot"] == 54
+          bad=[s for s in m["sources"] if s["license"] not in {"Public Domain","PD","BSD-2-Clause"}]
+          assert not bad, bad
+          print("Validated sources:", len(m["sources"]))
+          PY
+      - name: Upload microSD content pack
+        uses: actions/upload-artifact@v6
+        with:
+          name: x3-jewish-texts
+          path: build/x3-jewish-texts.zip
+          if-no-files-found: error
