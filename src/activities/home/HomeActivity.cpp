@@ -186,8 +186,8 @@ void HomeActivity::loop() {
       case HomeMenuItem::RECENTS:
         onRecentsOpen();
         break;
-      case HomeMenuItem::SIDDUR:
-        onSiddurOpen();
+      case HomeMenuItem::JEWISH_TEXTS:
+        onJewishTextsOpen();
         break;
       case HomeMenuItem::OPDS_BROWSER:
         onOpdsBrowserOpen();
@@ -357,7 +357,7 @@ void HomeActivity::onFileBrowserOpen() { activityManager.goToFileBrowser(); }
 
 void HomeActivity::onRecentsOpen() { activityManager.goToRecentBooks(); }
 
-void HomeActivity::onSiddurOpen() {
+void HomeActivity::onJewishTextsOpen() {
   activityManager.pushActivity(std::make_unique<JewishTextLibraryActivity>(renderer, mappedInput));
 }
 
