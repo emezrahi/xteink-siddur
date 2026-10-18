@@ -302,6 +302,8 @@ void ActivityManager::goHome(HomeMenuItem initialMenuItem, bool cleanInitialRefr
       initialMenuItem = HomeMenuItem::FILE_BROWSER;
     } else if (activityName == "RecentBooks") {
       initialMenuItem = HomeMenuItem::RECENTS;
+    } else if (activityName == "JewishTextLibrary") {
+      initialMenuItem = HomeMenuItem::JEWISH_TEXTS;
     } else if (activityName == "OpdsBookBrowser") {
       initialMenuItem = HomeMenuItem::OPDS_BROWSER;
     } else if (activityName == "CrossPointWebServer") {
