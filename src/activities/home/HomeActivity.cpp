@@ -19,12 +19,12 @@
 #include "MappedInputManager.h"
 #include "OpdsServerStore.h"
 #include "RecentBooksStore.h"
-#include "activities/siddur/SiddurActivity.h"
+#include "activities/library/JewishTextLibraryActivity.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
 int HomeActivity::getMenuItemCount() const {
-  int count = 5;  // File Browser, Recents, Siddur, File transfer, Settings
+  int count = 5;  // File Browser, Recents, Jewish Texts, File transfer, Settings
   if (!recentBooks.empty()) {
     count += recentBooks.size();
   }
@@ -311,7 +311,7 @@ void HomeActivity::render(RenderLock&&) {
                           std::bind(&HomeActivity::storeCoverBuffer, this));
 
   // Build menu items dynamically
-  std::vector<const char*> menuItems = {tr(STR_BROWSE_FILES), tr(STR_MENU_RECENT_BOOKS), "Siddur",
+  std::vector<const char*> menuItems = {tr(STR_BROWSE_FILES), tr(STR_MENU_RECENT_BOOKS), "Jewish Texts",
                                         tr(STR_FILE_TRANSFER), tr(STR_SETTINGS_TITLE)};
   std::vector<UIIcon> menuIcons = {Folder, Recent, Book, Transfer, Settings};
 
@@ -358,7 +358,7 @@ void HomeActivity::onFileBrowserOpen() { activityManager.goToFileBrowser(); }
 void HomeActivity::onRecentsOpen() { activityManager.goToRecentBooks(); }
 
 void HomeActivity::onSiddurOpen() {
-  activityManager.pushActivity(std::make_unique<SiddurActivity>(renderer, mappedInput));
+  activityManager.pushActivity(std::make_unique<JewishTextLibraryActivity>(renderer, mappedInput));
 }
 
 void HomeActivity::onSettingsOpen() { activityManager.goToSettings(); }
