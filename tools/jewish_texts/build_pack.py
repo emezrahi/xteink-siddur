@@ -36,7 +36,7 @@ MISHNAH_ORDER = {
     "Zeraim": ["Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot", "Maaser Sheni",
                "Challah", "Orlah", "Bikkurim"],
     "Moed": ["Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma", "Sukkah", "Beitzah", "Rosh Hashanah",
-             "Taanit", "Megillah", "Moed Katan", "Chagigah"],
+             "Ta'anit", "Megillah", "Moed Katan", "Chagigah"],
     "Nashim": ["Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin"],
     "Nezikin": ["Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot", "Eduyot",
                 "Avodah Zarah", "Avot", "Horayot"],
