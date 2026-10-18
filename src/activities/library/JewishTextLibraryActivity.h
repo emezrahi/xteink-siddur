@@ -7,6 +7,7 @@
 #include "activities/Activity.h"
 
 class JewishTextLibraryActivity final : public Activity {
+ public:
   enum class View {
     Root,
     Tehillim,
@@ -18,6 +19,7 @@ class JewishTextLibraryActivity final : public Activity {
     MissingPack,
   };
 
+ private:
   struct Entry {
     std::string label;
     std::string secondary;
