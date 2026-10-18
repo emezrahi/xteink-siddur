@@ -32,6 +32,19 @@ TANACH_VERSION = "Tanach with Ta'amei Hamikra"
 MISHNAH_VERSION = "Torat Emet 357"
 TORAH_BOOKS = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]
 SEDER_ORDER = ["Zeraim", "Moed", "Nashim", "Nezikin", "Kodashim", "Tahorot"]
+MISHNAH_ORDER = {
+    "Zeraim": ["Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot", "Maaser Sheni",
+               "Challah", "Orlah", "Bikkurim"],
+    "Moed": ["Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma", "Sukkah", "Beitzah", "Rosh Hashanah",
+             "Taanit", "Megillah", "Moed Katan", "Chagigah"],
+    "Nashim": ["Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin"],
+    "Nezikin": ["Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot", "Eduyot",
+                "Avodah Zarah", "Avot", "Horayot"],
+    "Kodashim": ["Zevachim", "Menachot", "Chullin", "Bekhorot", "Arakhin", "Temurah", "Keritot", "Meilah",
+                 "Tamid", "Middot", "Kinnim"],
+    "Tahorot": ["Kelim", "Oholot", "Negaim", "Parah", "Tahorot", "Mikvaot", "Niddah", "Makhshirin", "Zavim",
+                "Tevul Yom", "Yadayim", "Oktzin"],
+}
 ALLOWED_LICENSES = {"Public Domain", "PD"}
 
 TAG_RE = re.compile(r"<[^>]+>")
@@ -156,10 +169,17 @@ def build_mishnah(entries: list[dict[str, Any]], root: Path, source_log: list[di
     if len(selected) != 63:
         raise RuntimeError(f"Expected 63 Mishnah tractates in {MISHNAH_VERSION}, got {len(selected)}")
 
-    selected.sort(key=lambda e: (
-        SEDER_ORDER.index(mishnah_seder(e)) if mishnah_seder(e) in SEDER_ORDER else 99,
-        e["title"],
-    ))
+    def tractate_name(entry: dict[str, Any]) -> str:
+        return "Avot" if entry["title"] == "Pirkei Avot" else entry["title"].removeprefix("Mishnah ")
+
+    def mishnah_sort_key(entry: dict[str, Any]) -> tuple[int, int]:
+        seder = mishnah_seder(entry)
+        tractate = tractate_name(entry)
+        if seder not in SEDER_ORDER or tractate not in MISHNAH_ORDER.get(seder, []):
+            raise RuntimeError(f"Unknown Mishnah ordering for {seder}/{tractate}")
+        return SEDER_ORDER.index(seder), MISHNAH_ORDER[seder].index(tractate)
+
+    selected.sort(key=mishnah_sort_key)
 
     seder_indexes: dict[str, list[str]] = {s: [] for s in SEDER_ORDER}
     master = []
@@ -167,7 +187,7 @@ def build_mishnah(entries: list[dict[str, Any]], root: Path, source_log: list[di
         seder = mishnah_seder(entry)
         data = download_version(entry, source_log)
         chapters = data["text"]
-        tractate = "Avot" if entry["title"] == "Pirkei Avot" else entry["title"].removeprefix("Mishnah ")
+        tractate = tractate_name(entry)
         slug = safe_slug(tractate)
         seder_no = SEDER_ORDER.index(seder) + 1
         folder = root / "mishnah" / f"{seder_no:02d}-{seder.lower()}" / slug
